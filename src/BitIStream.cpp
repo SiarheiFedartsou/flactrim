@@ -43,6 +43,12 @@ std::string BitIStream::ReadString(unsigned int byteCount)
     return ret;
 }
 
+bool BitIStream::ReadFlag()
+{
+	uint8_t f = 0;
+	ReadBigEndian(&f, 1);
+	return f != 0;
+}
 
       
       

@@ -33,10 +33,11 @@ void ReadMetaBlockHeader(BitIStream& bs, MetaBlockHeader * mbh)
 int main(int argc, char** argv)
 {
 	BitIStream bs("/home/miksayer/Files/Music/4.flac");
-	std::cout << bs.PeekString(4) << std::endl;
-	std::cout << bs.ReadString(4) << std::endl;
+	//std::cout << bs.PeekString(4) << std::endl;
+	//std::cout << bs.ReadString(4) << std::endl;
 
-	//BitOStream bs("/home/miksayer/Files/Music/10.test");
+	//BitOStream bs2("/home/miksayer/Files/Music/10.test");
+	//bs2.WriteString("dfgfgfgfgfgfgdtret");
    /* if (bs.GetString(3) == "ID3")
     {
     	bs.Skip(3);
@@ -49,7 +50,7 @@ int main(int argc, char** argv)
     	id3size = (b1 << 21) | (b2 << 14) | (b3 << 7) | b4;
     	bs.Skip(id3size);
     }*/
-   /* if (bs.ReadString(4) != "fLaC")
+    if (bs.ReadString(4) != "fLaC")
     {
     	std::cerr << "No FLAC file" << std::endl;
     	return 1;
@@ -65,7 +66,7 @@ int main(int argc, char** argv)
     std::cout << "Type: " << mbh.BlockType << std::endl;
     std::cout << "Size: " << mbh.BlockSize << std::endl;
     bs.Skip(mbh.BlockSize);
-    ReadMetaBlockHeader(bs, &mbh);
+	ReadMetaBlockHeader(bs, &mbh);
     std::cout << "Is last: " << mbh.IsLastBlock << std::endl;
     std::cout << "Type: " << mbh.BlockType << std::endl;
     std::cout << "Size: " << mbh.BlockSize << std::endl;
@@ -77,7 +78,58 @@ int main(int argc, char** argv)
     bs.Skip(mbh.BlockSize);
     uint16_t code = 0;
     bs.ReadInteger(&code, 14);
-    std::cout << code << std::endl;*/
+    std::cout << code << std::endl;
+	uint8_t v0 = 0;
+	bs.ReadInteger(&v0, 2);
+	std::cout << ((v0 == 0) ? "0" : "1") << std::endl;
+	v0 = 0;
+	bs.ReadInteger(&v0, 4);
+	std::cout << (int)v0 << std::endl;
+	v0 = 0;
+	bs.ReadInteger(&v0, 4);
+	std::cout <<  (int)v0 << std::endl;
+
+	v0 = 0;
+	bs.ReadInteger(&v0, 4);
+	std::cout <<  (int)v0 << std::endl;
+
+
+	v0 = 0;
+	bs.ReadInteger(&v0, 3);
+	std::cout <<  (int)v0 << std::endl;
+
+
+	v0 = 0;
+	bs.ReadInteger(&v0, 1);
+	std::cout <<  (int)v0 << std::endl;
+
+	bs.Skip(4);
+
+	v0 = 0;
+	bs.ReadInteger(&v0, 8);
+	std::cout <<  (int)v0 << std::endl;
+
+	v0 = 0;
+	bs.ReadInteger(&v0, 1);
+	std::cout <<  (int)v0 << std::endl;
+
+	v0 = 0;
+	bs.ReadInteger(&v0, 6);
+	std::cout <<  (int)v0 << std::endl;
+
+	v0 = 0;
+	bs.ReadInteger(&v0, 1);
+	std::cout <<  (int)v0 << std::endl;
+
+	bs.Skip(2);
+
+
+
+
+
+
+
+
     //BitOStream bos("/home/miksayer/1.txt");
     return (EXIT_SUCCESS);
 }

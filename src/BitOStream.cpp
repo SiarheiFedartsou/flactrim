@@ -3,14 +3,6 @@
 BitOStream::BitOStream(std::string fileName) : freeDigitsCount(BITSINBYTE)
 {
     byteBuffer.Init(fileName);
-	WriteByte(3, 7);
-	WriteByte(1, 4);
-	WriteByte(3, 7);
-	WriteByte(3, 6);
-	unsigned int n = 323443;
-	WriteLittleEndian(n, sizeof(n)*BITSINBYTE);
-	//WriteByte(4, 4);
-	//WriteByte(6, 7);
 }
 
 
@@ -40,4 +32,9 @@ void BitOStream::WriteByte(uint8_t byte, unsigned short bitCount)
 
 void BitOStream::WriteString(std::string str)
 {
+	for_each(str.begin(), str.end(), [this](char c)
+	{
+		WriteByte(c);
+	}
+	);
 }

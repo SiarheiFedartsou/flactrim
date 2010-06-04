@@ -5,9 +5,11 @@
 #include <iostream>
 #include <fstream>
 #include <limits>
+#include <algorithm>
 #include "defines.hpp"
+#include "exceptions.hpp"
 
-class TypeOverflow : public std::exception {};
+
 
 template<size_t size>
 class ByteOBuffer
@@ -40,8 +42,6 @@ public:
 	};
 	~ByteOBuffer()
 	{
-		//std::cout <<"hi"<< std::endl;
-		//WriteByte(currentByte);
 		Flush();
 		fStream.close();
 	};
@@ -60,6 +60,7 @@ public:
 	void WriteString(std::string str);
 	template<typename T> void WriteInteger(T buf, unsigned short bitCount)
 	{
+		WriteLittleEndian(buf, bitCount);
     }
 	template<typename T>
 	void operator<<(T& op)

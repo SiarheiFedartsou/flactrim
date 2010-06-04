@@ -4,27 +4,9 @@
 #include <iostream>
 #include <fstream>
 #include <limits>
-#include <exception>
 #include <stdint.h>
 #include "defines.hpp"
-
-class TypeOverflow: public std::exception 
-{
-public:
-	virtual const char* what() const throw()
-	{
-		return "Type overflow";
-	}
-};
-class UnexpectedEOF : public std::exception 
-{
-public:
-	virtual const char* what() const throw()
-	{
-		return "Unexpected end of file";
-	}
-
-};
+#include "exceptions.hpp"
 
 namespace Bytes
 {
@@ -139,21 +121,26 @@ class BitIStream
 public:
 	BitIStream(std::string fileName);
 	std::string ReadString(unsigned int byteCount);
+
 	std::string PeekString(unsigned int byteCount) 
 	{
 		uint8_t buffer[byteCount];
 		byteBuffer.PeekBuffer(buffer, byteCount);
 		return std::string((char *)buffer);
 	};
+
+	bool ReadFlag();
+
 	template <typename T> void ReadInteger(T * buf, unsigned short bitCount)
 	{
 		ReadBigEndian(buf, bitCount);
 	};
+
 	template<typename T> void operator>>(T& op)
 	{
        	ReadInteger(&op, sizeof(T));
 	}; 
-	//template <typename T> void PeekInteger(T * buf, unsigned short bitCount) {};
+	
 	void Skip(unsigned int byteCount)
 	{
 		while (byteCount--) byteBuffer.SkipByte();
