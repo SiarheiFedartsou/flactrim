@@ -84,6 +84,11 @@ public:
 		}
 	};
 
+	void ReadBuffer(uint8_t * buffer, size_t count)
+	{
+		for (int i = 0; i < count; i++) buffer[i] = GetNextByte();
+	}
+
 
 
 	void SkipByte()

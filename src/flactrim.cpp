@@ -33,7 +33,13 @@ void ReadMetaBlockHeader(BitIStream& bs, MetaBlockHeader * mbh)
 	bs.ReadInteger(&mbh->BlockSize, 24);
 }
 
+void WriteMetaBlockHeader(BitOStream& bs, MetaBlockHeader * mbh)
+{
+	bs.WriteInteger(mbh->IsLastBlock, 1);
+	bs.WriteInteger(mbh->BlockType, 7);
+	bs.WriteInteger(mbh->BlockSize, 24);
 
+}
 
 int main(int argc, char** argv)
 {
@@ -44,7 +50,7 @@ int main(int argc, char** argv)
 	po::positional_options_description p;
 	p.add("input-file", -1);
 	po::variables_map vm;
-	//po::store(po::parse_command_line(argc, argv, desc), vm);
+
 	po::store(po::command_line_parser(argc, argv).
           options(desc).positional(p).run(), vm);
 	po::notify(vm);
@@ -65,6 +71,11 @@ int main(int argc, char** argv)
 	}
 
 	BitIStream bs("/home/miksayer/Files/Music/4.flac");
+	BitOStream bos("/home/miksayer/Files/Music/10.test");
+
+//	bos.WriteInteger(1, 1);
+//	bos.WriteInteger(103, 7);
+
 	//std::cout << bs.PeekString(4) << std::endl;
 	//std::cout << bs.ReadString(4) << std::endl;
 
@@ -87,9 +98,16 @@ int main(int argc, char** argv)
     	std::cerr << "No FLAC file" << std::endl;
     	return 1;
     }
+	bos.WriteString("fLaC");
     MetaBlockHeader mbh;
     ReadMetaBlockHeader(bs, &mbh);
-    std::cout << "Is last: " << mbh.IsLastBlock << std::endl;
+	do 
+	{
+		WriteMetaBlockHeader(bos, &mbh);
+		ReadMetaBlockHeader(bs, &mbh);
+	}
+	while (mbh.IsLastBlock == 0);
+    /*std::cout << "Is last: " << mbh.IsLastBlock << std::endl;
     std::cout << "Type: " << mbh.BlockType << std::endl;
     std::cout << "Size: " << mbh.BlockSize << std::endl;
     bs.Skip(mbh.BlockSize);
@@ -153,8 +171,7 @@ int main(int argc, char** argv)
 	bs.ReadInteger(&v0, 1);
 	std::cout <<  (int)v0 << std::endl;
 
-	bs.Skip(2);
-
+	bs.Skip(2);*/
 
 
 
