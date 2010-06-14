@@ -36,3 +36,9 @@ void BitOStream::WriteString(std::string str)
 	}
 	);
 }
+
+void BitOStream::WriteFlag(bool flag)
+{
+	uint8_t f = flag ? 1 : 0;
+	WriteBigEndian(f, 1);
+}

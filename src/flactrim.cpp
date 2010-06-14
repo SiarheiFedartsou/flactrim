@@ -21,21 +21,21 @@ using namespace std;
 
 struct MetaBlockHeader
 {
-	uint32_t IsLastBlock;
+	bool IsLastBlock;
 	uint32_t  BlockType;
 	uint32_t BlockSize;
 };
 
 void ReadMetaBlockHeader(BitIStream& bs, MetaBlockHeader * mbh)
 {
-	bs.ReadInteger(&mbh->IsLastBlock, 1);
+	bs.ReadFlag(&mbh->IsLastBlock);
 	bs.ReadInteger(&mbh->BlockType, 7);
 	bs.ReadInteger(&mbh->BlockSize, 24);
 }
 
 void WriteMetaBlockHeader(BitOStream& bs, MetaBlockHeader * mbh)
 {
-	bs.WriteInteger(mbh->IsLastBlock, 1);
+	bs.WriteFlag(mbh->IsLastBlock);
 	bs.WriteInteger(mbh->BlockType, 7);
 	bs.WriteInteger(mbh->BlockSize, 24);
 
@@ -112,14 +112,15 @@ int main(int argc, char** argv)
     }
 	bos.WriteString("fLaC");
     MetaBlockHeader mbh;
-    ReadMetaBlockHeader(bs, &mbh);
-
+    //ReadMetaBlockHeader(bs, &mbh);
+	mbh.IsLastBlock = false;
 //streamSamplesCount = 494655;
 //bos.WriteInteger(streamSamplesCount, 36);
 //bos.WriteInteger(0, 4);
 
-	do 
+	while (!mbh.IsLastBlock)
 	{
+		ReadMetaBlockHeader(bs, &mbh);
 		WriteMetaBlockHeader(bos, &mbh);
 		switch (mbh.BlockType)
 		{
@@ -148,7 +149,33 @@ int main(int argc, char** argv)
 				bos.WriteBuffer(md5, 16);
 
 			break;
+		//	case APPLICATION:
+		/*	case SEEKTABLE:
+				cout << mbh.BlockSize << endl;	
+				for (uint16_t i = 1; i <= mbh.BlockSize / 18; i++)
+				{
+					uint64_t v1 = 0;
+					uint64_t v2 = 0;
+					uint16_t v3 = 0;
+					bs.ReadInteger(&v1, 64);
+					bs.ReadInteger(&v2, 64);
+					bs.ReadInteger(&v3, 16);
 
+					bos.WriteInteger(v1, 64);
+					bos.WriteInteger(v2, 64);
+					bos.WriteInteger(v3, 16);
+
+				}
+				buf = new uint8_t[mbh.BlockSize];
+				bs.ReadBuffer(buf, mbh.BlockSize);
+				bos.WriteBuffer(buf, mbh.BlockSize);
+				delete[] buf;
+
+			break;*/
+			case SEEKTABLE:
+			case APPLICATION:
+			case VORBIS_COMMENT:
+			case CUESHEET:
 			case PADDING:
 				buf = new uint8_t[mbh.BlockSize];
 				bs.ReadBuffer(buf, mbh.BlockSize);
@@ -156,33 +183,31 @@ int main(int argc, char** argv)
 				delete[] buf;
 			break;
 
-		/*	case APPLICATION:
-
-		//	break;
-			
-			case SEEKTABLE:
-
-		//	break;
-
-			case VORBIS_COMMENT:
-			
-		//	break;
-
-			case CUESHEET:
-
-	//		break;*/
-
 			default:
+				cerr << "Warning: unknown block type" << endl;
 				buf = new uint8_t[mbh.BlockSize];
 				bs.ReadBuffer(buf, mbh.BlockSize);
 				bos.WriteBuffer(buf, mbh.BlockSize);
 				delete[] buf;
 			break;
 		}
-		ReadMetaBlockHeader(bs, &mbh);
-		
+				
 	}
 	while (mbh.IsLastBlock == 0);
+
+	uint16_t syncCode = 0;
+	bs.ReadInteger(&syncCode, 14);
+	if (syncCode != 0b11111111111110)
+	{
+		cerr << "Error: incorrect synchronization code" << endl;
+	}
+	bos.WriteInteger(syncCode, 14);
+
+
+
+//	cout << (int)channelsCount << endl;
+//	cout << 0b111 << endl;
+
     //BitOStream bos("/home/miksayer/1.txt");
     return (EXIT_SUCCESS);
 }

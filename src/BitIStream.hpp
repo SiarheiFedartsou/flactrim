@@ -134,7 +134,7 @@ public:
 		return std::string((char *)buffer);
 	};
 
-	bool ReadFlag();
+	void ReadFlag(bool * flag);
 
 	template <typename T> void ReadInteger(T * buf, unsigned short bitCount)
 	{

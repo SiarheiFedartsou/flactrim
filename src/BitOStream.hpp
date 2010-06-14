@@ -30,9 +30,9 @@ public:
 
 	void WriteByte(uint8_t byte)
 	{
+		if (currentPos == size) Flush();
 		byteBuffer[currentPos] = byte;
 		currentPos++;
-		if (currentPos - 1 == size) Flush();
 	}
 
 	void WriteBuffer(uint8_t * buffer, size_t count)
@@ -85,6 +85,8 @@ public:
 	{
 		byteBuffer.WriteBuffer(buffer, count);
 	}
+
+	void WriteFlag(bool flag);
 private:
 	ByteOBuffer<8192> byteBuffer;
 	void WriteByte(uint8_t byte, unsigned short bitCount = BITSINBYTE);
