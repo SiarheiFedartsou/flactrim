@@ -5,8 +5,6 @@ BitOStream::BitOStream(std::string fileName) : freeDigitsCount(BITSINBYTE)
     byteBuffer.Init(fileName);
 }
 
-
-
 void BitOStream::WriteByte(uint8_t byte, unsigned short bitCount)
 {
     if (bitCount >= freeDigitsCount)

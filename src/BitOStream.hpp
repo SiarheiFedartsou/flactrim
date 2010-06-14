@@ -37,7 +37,7 @@ public:
 
 	void WriteBuffer(uint8_t * buffer, size_t count)
 	{
-		for (int i = 0; i < count; i++) WriteByte(buffer[i]);
+		for (size_t i = 0; i < count; i++) WriteByte(buffer[i]);
 	}
 
 	uint8_t GetCurrentByte()
@@ -74,18 +74,22 @@ public:
 	void WriteString(std::string str);
 	template<typename T> void WriteInteger(T buf, unsigned short bitCount)
 	{
-		WriteLittleEndian(buf, bitCount);
+		WriteBigEndian(buf, bitCount);
     }
-	template<typename T>
-	void operator<<(T& op)
+	template<typename T> void operator<<(T& op)
 	{
 		WriteInteger(&op, sizeof(T));
 	};
+
+	void WriteBuffer(uint8_t * buffer, size_t count)
+	{
+		byteBuffer.WriteBuffer(buffer, count);
+	}
 private:
 	ByteOBuffer<8192> byteBuffer;
 	void WriteByte(uint8_t byte, unsigned short bitCount = BITSINBYTE);
 	//this method may have some problems
-	template <typename T> void WriteLittleEndian(T buf, unsigned short bitCount = BITSINBYTE)
+	template <typename T> void WriteBigEndian(T buf, unsigned short bitCount = BITSINBYTE)
  	{
 		if (std::numeric_limits<T>::digits < bitCount) throw TypeOverflow();
 		if (bitCount > BITSINBYTE)
@@ -101,12 +105,17 @@ private:
 				counter += BITSINBYTE;
 			}
 			T byte = buf;
-			byte <<= counter;
-			byte >>= counter + bitCount;
+			byte <<= sizeof(T) * BITSINBYTE - bitCount;
+			byte >>= sizeof(T) * BITSINBYTE - bitCount;
+		/*	byte <<= counter;
+			byte >>= counter + bitCount;*/
 			if (bitCount != 0) WriteByte(byte, bitCount);
 		}
-		else WriteByte(buf, bitCount);
-	}; 
-       unsigned int freeDigitsCount;
+		else 
+		{
+			WriteByte(buf, bitCount);
+		}
+	};
+	unsigned int freeDigitsCount;
 };
 #endif

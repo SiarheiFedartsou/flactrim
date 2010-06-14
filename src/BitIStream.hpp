@@ -86,7 +86,7 @@ public:
 
 	void ReadBuffer(uint8_t * buffer, size_t count)
 	{
-		for (int i = 0; i < count; i++) buffer[i] = GetNextByte();
+		for (size_t i = 0; i < count; i++) buffer[i] = GetNextByte();
 	}
 
 
@@ -141,6 +141,11 @@ public:
 		ReadBigEndian(buf, bitCount);
 	};
 
+	void ReadBuffer(uint8_t * buffer, size_t count)
+	{
+		byteBuffer.ReadBuffer(buffer, count);
+	}
+
 	template<typename T> void operator>>(T& op)
 	{
        	ReadInteger(&op, sizeof(T));
@@ -156,21 +161,26 @@ private:
 	unsigned short firstByteDigitsCount;
 	uint8_t ReadByte(unsigned short bitCount = BITSINBYTE);
 
-    template <typename T> void ReadBigEndian(T * buf, unsigned short bitCount)
+	template <typename T> void ReadBigEndian(T * buf, unsigned short bitCount)
 	{
-	   if (std::numeric_limits<T>::digits < bitCount) throw TypeOverflow();
-	   T ret = 0;
-	   while (bitCount / BITSINBYTE > 0)
-	   {
-		   ret += ReadByte();
-		   ret <<= BITSINBYTE;
-		   bitCount -= BITSINBYTE;
-	   }
-	   ret >>= BITSINBYTE;
-	   ret <<= bitCount;
-	   if (bitCount != 0) ret += ReadByte(bitCount);
-	   else ret >>= bitCount;
-	   *buf = ret;
+		if (std::numeric_limits<T>::digits < bitCount) throw TypeOverflow();
+		T ret = 0;
+		while (bitCount / BITSINBYTE > 0)
+		{
+			ret += ReadByte();
+			if (bitCount / BITSINBYTE > 1) // for all exclude last full byte
+				ret <<= BITSINBYTE; 
+			bitCount -= BITSINBYTE;
+		}
+	//	ret >>= BITSINBYTE;
+		ret <<= bitCount;
+		
+		if (bitCount != 0) 
+		{
+			ret += ReadByte(bitCount);
+		}
+		else ret >>= bitCount;
+		*buf = ret;
     };
 
 };
