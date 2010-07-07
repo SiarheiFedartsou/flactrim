@@ -15,29 +15,59 @@
 #include <boost/program_options.hpp>
 #include "BitIStream.hpp"
 #include "BitOStream.hpp"
-
+#include "flac_defines.hpp"
+#include "Trimmer.hpp"
 namespace po = boost::program_options;
 using namespace std;
 
-struct MetaBlockHeader
-{
-	bool IsLastBlock;
-	uint32_t  BlockType;
-	uint32_t BlockSize;
-};
 
-void ReadMetaBlockHeader(BitIStream& bs, MetaBlockHeader * mbh)
+uint16_t GetUnencodedSamplesCount(uint8_t frameBitsPerSample, uint8_t siBitsPerSample, uint8_t order)
 {
-	bs.ReadFlag(&mbh->IsLastBlock);
-	bs.ReadInteger(&mbh->BlockType, 7);
-	bs.ReadInteger(&mbh->BlockSize, 24);
+	switch (frameBitsPerSample)
+	{
+		case 0b000:
+			return siBitsPerSample * order;
+		case 0b001:
+			return 8 * order;
+		case 0b010:
+			return 12 * order;
+		case 0b100:
+			return 16 * order;
+		case 0b101:
+			return 20 * order;
+		case 0b110:
+			return 24 * order;
+		default:
+			return 0;
+	}
 }
 
-void WriteMetaBlockHeader(BitOStream& bs, MetaBlockHeader * mbh)
+uint8_t GetBitsPerSample(uint8_t frameBitsPerSample, uint8_t siBitsPerSample)
 {
-	bs.WriteFlag(mbh->IsLastBlock);
-	bs.WriteInteger(mbh->BlockType, 7);
-	bs.WriteInteger(mbh->BlockSize, 24);
+	switch (frameBitsPerSample)
+	{
+		case 0b001:
+			return 8;
+		case 0b010:
+			return 12;
+		case 0b100:
+			return 16;
+		case 0b101:
+			return 20;
+		case 0b110:
+			return 24;
+		default:
+			return siBitsPerSample + 1;
+	}
+}
+
+uint16_t GetUnencodedSubblockCount(FLACFrameHeader * fh, uint8_t siBlockSize, uint8_t siBitsPerSample)
+{
+	if (fh->BlockSize == 0b0000) return siBlockSize * GetBitsPerSample(fh->BitsPerSample, siBitsPerSample);
+	else if (fh->BlockSize == 0b0001) return 192 * GetBitsPerSample(fh->BitsPerSample, siBitsPerSample);
+	else if (0b0010 <= fh->BlockSize && fh->BlockSize <= 0b0101 ) return 576 * (pow(2, fh->BlockSize - 2)) *  GetBitsPerSample(fh->BitsPerSample, siBitsPerSample);
+	else if (fh->BlockSize == 0b0110 || fh->BlockSize == 0b0111) return (fh->VariableBlockSize + 1) * GetBitsPerSample(fh->BitsPerSample, siBitsPerSample);
+	else return 256 * pow(2, fh->BlockSize - 8) * GetBitsPerSample(fh->BitsPerSample, siBitsPerSample);
 
 }
 
@@ -73,14 +103,6 @@ int main(int argc, char** argv)
 	BitIStream bs("/home/miksayer/Files/Music/4.flac");
 	BitOStream bos("/home/miksayer/Files/Music/10.test");
 
-//	bos.WriteInteger(1, 1);
-//	bos.WriteInteger(103, 7);
-
-	//std::cout << bs.PeekString(4) << std::endl;
-	//std::cout << bs.ReadString(4) << std::endl;
-
-	//BitOStream bs2("/home/miksayer/Files/Music/10.test");
-	//bs2.WriteString("dfgfgfgfgfgfgdtret");
    /* if (bs.GetString(3) == "ID3")
     {
     	bs.Skip(3);
@@ -93,7 +115,7 @@ int main(int argc, char** argv)
     	id3size = (b1 << 21) | (b2 << 14) | (b3 << 7) | b4;
     	bs.Skip(id3size);
     }*/
-
+	uint64_t flac_null = 0;
 	uint16_t minBlockSize = 0; //minimal size of block in samples in current stream
 	uint16_t maxBlockSize = 0; //maximal size of block in samples in current stream
 	uint32_t minFrameSize = 0; //minimal size of frame in bytes in current stream
@@ -111,12 +133,8 @@ int main(int argc, char** argv)
     	return 1;
     }
 	bos.WriteString("fLaC");
-    MetaBlockHeader mbh;
-    //ReadMetaBlockHeader(bs, &mbh);
+    FLACMetaBlockHeader mbh;
 	mbh.IsLastBlock = false;
-//streamSamplesCount = 494655;
-//bos.WriteInteger(streamSamplesCount, 36);
-//bos.WriteInteger(0, 4);
 
 	while (!mbh.IsLastBlock)
 	{
@@ -124,7 +142,7 @@ int main(int argc, char** argv)
 		WriteMetaBlockHeader(bos, &mbh);
 		switch (mbh.BlockType)
 		{
-			case STREAMINFO:
+			case FLAC_META_STREAMINFO:
 				bs.ReadInteger(&minBlockSize, 16);
 				bs.ReadInteger(&maxBlockSize, 16);
 				bs.ReadInteger(&minFrameSize, 24);
@@ -133,10 +151,9 @@ int main(int argc, char** argv)
 				bs.ReadInteger(&channelsCount, 3);
 				bs.ReadInteger(&bitsPerSample, 5);
 				bs.ReadInteger(&streamSamplesCount, 36);
-			//	cout << streamSamplesCount << endl;
-				bs.ReadBuffer(md5, 16);
+				bs.ReadAlignBuffer(md5, 16);
 
-
+ 
 
 				bos.WriteInteger(minBlockSize, 16);
 				bos.WriteInteger(maxBlockSize, 16);
@@ -146,69 +163,102 @@ int main(int argc, char** argv)
 				bos.WriteInteger(channelsCount, 3);
 				bos.WriteInteger(bitsPerSample, 5);
 				bos.WriteInteger(streamSamplesCount, 36);
-				bos.WriteBuffer(md5, 16);
+				bos.WriteAlignBuffer(md5, 16);
 
 			break;
-		//	case APPLICATION:
-		/*	case SEEKTABLE:
-				cout << mbh.BlockSize << endl;	
-				for (uint16_t i = 1; i <= mbh.BlockSize / 18; i++)
-				{
-					uint64_t v1 = 0;
-					uint64_t v2 = 0;
-					uint16_t v3 = 0;
-					bs.ReadInteger(&v1, 64);
-					bs.ReadInteger(&v2, 64);
-					bs.ReadInteger(&v3, 16);
-
-					bos.WriteInteger(v1, 64);
-					bos.WriteInteger(v2, 64);
-					bos.WriteInteger(v3, 16);
-
-				}
+			case FLAC_META_SEEKTABLE:
+			case FLAC_META_APPLICATION:
+			case FLAC_META_VORBIS_COMMENT:
+			case FLAC_META_CUESHEET:
+			case FLAC_META_PADDING:
 				buf = new uint8_t[mbh.BlockSize];
-				bs.ReadBuffer(buf, mbh.BlockSize);
-				bos.WriteBuffer(buf, mbh.BlockSize);
-				delete[] buf;
-
-			break;*/
-			case SEEKTABLE:
-			case APPLICATION:
-			case VORBIS_COMMENT:
-			case CUESHEET:
-			case PADDING:
-				buf = new uint8_t[mbh.BlockSize];
-				bs.ReadBuffer(buf, mbh.BlockSize);
-				bos.WriteBuffer(buf, mbh.BlockSize);
+				bs.ReadAlignBuffer(buf, mbh.BlockSize);
+				bos.WriteAlignBuffer(buf, mbh.BlockSize);
 				delete[] buf;
 			break;
 
 			default:
 				cerr << "Warning: unknown block type" << endl;
 				buf = new uint8_t[mbh.BlockSize];
-				bs.ReadBuffer(buf, mbh.BlockSize);
-				bos.WriteBuffer(buf, mbh.BlockSize);
+				bs.ReadAlignBuffer(buf, mbh.BlockSize);
+				bos.WriteAlignBuffer(buf, mbh.BlockSize);
 				delete[] buf;
 			break;
 		}
 				
 	}
-	while (mbh.IsLastBlock == 0);
+//	while (mbh.IsLastBlock == 0);
 
-	uint16_t syncCode = 0;
-	bs.ReadInteger(&syncCode, 14);
-	if (syncCode != 0b11111111111110)
-	{
-		cerr << "Error: incorrect synchronization code" << endl;
-	}
-	bos.WriteInteger(syncCode, 14);
+//	for (int i = 0; i < 512; i++)
+//	{
+		FLACFrameHeader fh;
+		ReadFrameHeader(bs, &fh);
+		WriteFrameHeader(bos, &fh);
 
+		for (int j = 0; j <= channelsCount; j++)
+		{
+			uint16_t constant_sample = 0;
+			uint8_t * buf;
+			uint8_t linearPredictor = 0;
+			int8_t spredictorShift = 0;
+			uint8_t predictorShift = 0;
+			uint64_t n = 0;
+			uint16_t unencPredCoeffs = 0;
+			FLACSubframeHeader sfh;
+			ReadSubframeHeader(bs, &sfh);
+		//	cout << (int)sfh.type << endl;
+		//	cout << (int)sfh.order << endl;
+		//	cout << sfh.waste << endl;
+			WriteSubframeHeader(bos, &sfh);
 
+		//	cout << sfh.type << endl;
 
-//	cout << (int)channelsCount << endl;
-//	cout << 0b111 << endl;
+			switch (sfh.type)
+			{
+				case FLAC_SF_CONSTANT:
+					bs.ReadInteger(&constant_sample, 16);
+					bos.WriteInteger(constant_sample, 16);
+				break;
+				case FLAC_SF_LPC:
+					n = GetUnencodedSamplesCount(fh.BitsPerSample, bitsPerSample, sfh.order);
+					buf = new uint8_t[n / BITSINBYTE];
+					bs.ReadBuffer(buf, n / BITSINBYTE);
+					bos.WriteBuffer(buf, n / BITSINBYTE);
+					delete[] buf;
+					bs.ReadInteger(&linearPredictor, 4);
+					bos.WriteInteger(linearPredictor, 4);
+					linearPredictor++;
+				//	std::cout << linearPredictor << endl;
+					bs.ReadInteger(&predictorShift, 5);
+					bos.WriteInteger(predictorShift, 5);
+				//	std::cout << (int)sfh.order * linearPredictor << endl;
+					std::cout <<(unsigned int) sfh.order << endl;
+std::cout << (unsigned int)linearPredictor << endl;
+					if (linearPredictor = 0b1111) cout << "e" << endl;
+					n = sfh.order * linearPredictor;
+					bs.ReadInteger(&unencPredCoeffs, n);
+					bos.WriteInteger(unencPredCoeffs, n);
+				break;
+				case FLAC_SF_VERBATIM:
+					n = GetUnencodedSubblockCount(&fh, maxBlockSize, bitsPerSample);
+					buf = new uint8_t[n / BITSINBYTE];
+					bs.ReadBuffer(buf, n / BITSINBYTE);
+					bos.WriteBuffer(buf, n / BITSINBYTE);
+					delete[] buf;
+				break;
+				case FLAC_SF_FIXED:
+				break;
+				default:
+				break;
+			}
+		}
+//	}
+//	bos.AlignByte();
 
-    //BitOStream bos("/home/miksayer/1.txt");
-    return (EXIT_SUCCESS);
+	uint16_t crc16;
+	bs.ReadInteger(&crc16, 16);
+	bos.WriteInteger(crc16, 16);
+
+	return (EXIT_SUCCESS);
 }
 

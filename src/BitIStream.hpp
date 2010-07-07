@@ -7,6 +7,7 @@
 #include <stdint.h>
 #include "defines.hpp"
 #include "exceptions.hpp"
+#include "ByteStream.hpp"
 
 namespace Bytes
 {
@@ -17,108 +18,6 @@ namespace Bytes
         word += second;
         return word;
     }
-};
-
-template<size_t size>
-class ByteIBuffer
-{
-public:
-	void Init(std::string fileName)
-	{
-		fStream.open(fileName.c_str() , std::ios::binary);
-		ReadMoreBytes();
-	};
-	operator char * const()
- 	{
-		return (char *)byteBuffer;
-	};
-	uint8_t GetNextByte()
-	{
-		currentPos++;
-		if (IsNeedMoreBytes()) ReadMoreBytes();
-		return byteBuffer[currentPos - 1];
-	};
-
-	uint8_t PeekNextByte()
-	{
-		return byteBuffer[currentPos];
-	}
-
-	//This function is not working normaly, if count > size
-	//Also this function is not tested in extreme conditions :-) 
-	//But it is not very importantly, because it is only used to skip ID3 tags at begin of FLAC file(see flactrim.cpp)
-	void PeekBuffer(uint8_t * buffer, size_t count)
-	{
-		size_t currentPeekPos = currentPos;
-		int i = 0;
-		while (currentPeekPos <= currentBufferSize && count != 0)
-		{
-			buffer[i] = byteBuffer[currentPeekPos];
-			currentPeekPos++;
-			i++;
-			buffer[i] = 0;
-			count--;
-		}
-
-		if (count == 0) return;
-		else
-		{
-			size_t currentPeekBufferSize = 0;
-			const size_t bufferSize = size;
-			const size_t filePos = fStream.tellg();
-	    	fStream.read((char *)peekByteBuffer, bufferSize);
-			fStream.seekg(filePos);
-	    	currentPeekBufferSize = fStream.gcount() - 1;
-	    	currentPeekPos = 0;
-
-			while (currentPeekPos <= currentPeekBufferSize && count != 0)
-		    {	
-				buffer[i] = byteBuffer[currentPeekPos];
-				currentPeekPos++;
-				i++;
-				buffer[i] = 0;
-				count--;
-			}
-
-
-		}
-	};
-
-	void ReadBuffer(uint8_t * buffer, size_t count)
-	{
-		for (size_t i = 0; i < count; i++) buffer[i] = GetNextByte();
-	}
-
-
-
-	void SkipByte()
-	{
-		currentPos++;
-		if (IsNeedMoreBytes()) ReadMoreBytes();
-	};
-
-	~ByteIBuffer()
-	{
-		fStream.close();
-	};
-	  
-
-private:
-	bool IsNeedMoreBytes() { return currentPos > currentBufferSize; }
-	void ReadMoreBytes()
-	{
-        const size_t bufferSize = size;
-	    fStream.read((char *)byteBuffer, bufferSize);
-		if (fStream.gcount() == 0) throw UnexpectedEOF();
-	    currentBufferSize = fStream.gcount() - 1;
-	    currentPos = 0;
-	};
-	uint8_t byteBuffer[size];
-    size_t currentPos;
-    size_t currentBufferSize;
-
-	uint8_t peekByteBuffer[size];
-	std::ifstream fStream;
 };
 
 class BitIStream
@@ -141,23 +40,37 @@ public:
 		ReadBigEndian(buf, bitCount);
 	};
 
-	void ReadBuffer(uint8_t * buffer, size_t count)
+	void ReadAlignBuffer(uint8_t * buffer, size_t count)
 	{
 		byteBuffer.ReadBuffer(buffer, count);
 	}
+	//this method is very slow
+	void ReadBuffer(uint8_t * buffer, size_t count)
+	{
+		int i = 0;
+		while (count > 0)
+		{
+			buffer[i] = ReadByte();
+			i++;
+			count--;
+		}
+	}
+
 
 	template<typename T> void operator>>(T& op)
 	{
        	ReadInteger(&op, sizeof(T));
 	}; 
 	
-	void Skip(unsigned int byteCount)
+	void SkipBytes(size_t byteCount)
 	{
 		while (byteCount--) byteBuffer.SkipByte();
     }
 
+	
+
 private:
-	ByteIBuffer<8192> byteBuffer;
+	ByteIBuffer<IOBUFFERSIZE> byteBuffer;
 	unsigned short firstByteDigitsCount;
 	uint8_t ReadByte(unsigned short bitCount = BITSINBYTE);
 

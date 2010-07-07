@@ -8,63 +8,7 @@
 #include <algorithm>
 #include "defines.hpp"
 #include "exceptions.hpp"
-
-
-
-template<size_t size>
-class ByteOBuffer
-{
-public:
-	void Init(std::string fileName)
-	{
-		fStream.open(fileName.c_str() , std::ios::binary);
-		currentPos = 0;
-		currentByte = 0;
-	}
-
-	void Flush()
-	{
-		fStream.write((char *)byteBuffer, currentPos);
-		currentPos = 0;
-	}
-
-	void WriteByte(uint8_t byte)
-	{
-		if (currentPos == size) Flush();
-		byteBuffer[currentPos] = byte;
-		currentPos++;
-	}
-
-	void WriteBuffer(uint8_t * buffer, size_t count)
-	{
-		for (size_t i = 0; i < count; i++) WriteByte(buffer[i]);
-	}
-
-	uint8_t GetCurrentByte()
-	{
-		return currentByte;
-	}
-
-	void SetCurrentByte(uint8_t _currentByte)
-	{
-		currentByte = _currentByte;		
-	}
-
-
-
-	~ByteOBuffer()
-	{
-		Flush();
-		fStream.close();
-	}
-
-
-private:
-	uint8_t byteBuffer[size];
-	size_t currentPos;
-	std::ofstream fStream;
-	uint8_t currentByte;
-};
+#include "ByteStream.hpp"
 
 class BitOStream
 {
@@ -81,14 +25,36 @@ public:
 		WriteInteger(&op, sizeof(T));
 	};
 
-	void WriteBuffer(uint8_t * buffer, size_t count)
+	void WriteAlignBuffer(uint8_t * buffer, size_t count)
 	{
 		byteBuffer.WriteBuffer(buffer, count);
 	}
 
+	//this method is very slow
+	void WriteBuffer(uint8_t * buffer, size_t count)
+	{
+		int i = 0;
+		while (count > 0)
+		{
+			WriteByte(buffer[i], BITSINBYTE);
+			count--;
+			i++;
+		}
+	}
+
+
 	void WriteFlag(bool flag);
+
+	//i very question in this method validity
+	void AlignByte()
+	{
+		if (freeDigitsCount != BITSINBYTE)
+		{
+			WriteByte(0, freeDigitsCount - 1);
+		}
+	};
 private:
-	ByteOBuffer<8192> byteBuffer;
+	ByteOBuffer<IOBUFFERSIZE> byteBuffer;
 	void WriteByte(uint8_t byte, unsigned short bitCount = BITSINBYTE);
 	//this method may have some problems
 	template <typename T> void WriteBigEndian(T buf, unsigned short bitCount = BITSINBYTE)
@@ -96,15 +62,18 @@ private:
 		if (std::numeric_limits<T>::digits < bitCount) throw TypeOverflow();
 		if (bitCount > BITSINBYTE)
 		{
-			unsigned short counter = 0;
+		//	unsigned short counter = 0;
 			while (bitCount / BITSINBYTE > 0)
 			{
-				T byte = buf;
+				/*T byte = buf;
 				bitCount -= BITSINBYTE;
 				byte <<= counter;
 				byte >>= bitCount + counter;
 				WriteByte(byte);
-				counter += BITSINBYTE;
+				counter += BITSINBYTE;*/
+				bitCount -= BITSINBYTE;
+				T byte = (buf >> bitCount) & 0xFF;
+				WriteByte(byte);
 			}
 			T byte = buf;
 			byte <<= sizeof(T) * BITSINBYTE - bitCount;
