@@ -45,4 +45,6 @@ function! PushGit(comment)
 	cd ..
 	:Git add .
 	:Git commit -m comment
+	:Git push origin master
+	cd src
 endfunction
