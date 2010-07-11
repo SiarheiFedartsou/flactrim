@@ -42,9 +42,11 @@ au BufReadPost * :call MySetIdeSyntax()
 " Загружаем ранее сохраненную сессию
 "
 function! PushGit(comment)
-	cd ..
-	:Git add .
-	:Git commit -m a:comment
-	:Git push origin master
+	cd .. 
+	Git add .
+	Git commit -m string(a:comment)
+	Git push origin master
 	cd src
 endfunction
+
+" :command! PushGit -nargs=1 Comment  call PushGit(Comment)
