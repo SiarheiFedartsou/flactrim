@@ -56,7 +56,7 @@ int main(int argc, char** argv)
 
 //	for (int i = 0; i < 512; i++)
 //	{
-		for (int j = 0; j <= channelsCount0:channelsCount; j++)
+		for (int j = 0; j <= channelsCount; j++)
 		{
 			uint16_t constant_sample = 0;
 			uint8_t * buf;

@@ -74,6 +74,7 @@ void Trimmer::CutTrack(string outputFLACFile, unsigned int leftSecond, unsigned 
 			case FLAC_SF_FIXED:
 			break;
 			case FLAC_SF_LPC:
+				CopyLPCSubframe(bis, bos, fh, msi, sfh);
 			break;
 			default:
 			break;
@@ -345,9 +346,9 @@ uint16_t Trimmer::GetUnencSubblockSize(FLACFrameHeader * fh, FLACMetaStreamInfo 
 	else return 256 * pow(2, fh->BlockSize - 8) * GetBitsPerSample(fh->BitsPerSample, msi->BitsPerSample);
 }
 
-uint16_t Trimmer::GetWarmUpSamplesCount(FLACFrameHeader * fh, FLACMetaStreamInfo * msi, uint8_t order)
+uint16_t Trimmer::GetWarmUpSamplesSize(FLACFrameHeader * fh, FLACMetaStreamInfo * msi, FLACSubframeHeader * sfh)
 {
-	return GetBitsPerSample(fh, msi) * order;
+	return GetBitsPerSample(fh, msi) * sfh->order;
 }
 
 
