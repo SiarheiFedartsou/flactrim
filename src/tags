@@ -93,16 +93,18 @@ ChannelsLocation	flac_defines.hpp	/^	uint8_t ChannelsLocation;$/;"	m	struct:FLAC
 ControlSum	flac_defines.hpp	/^	uint8_t ControlSum;$/;"	m	struct:FLACFrameHeader	access:public
 CopyBytes	Trimmer.cpp	/^void Trimmer::CopyBytes(BitIStream& bis, BitOStream& bos, size_t n)$/;"	f	class:Trimmer	signature:(BitIStream& bis, BitOStream& bos, size_t n)
 CopyBytes	Trimmer.hpp	/^		void CopyBytes(BitIStream& bis, BitOStream& bos, size_t n);$/;"	p	class:Trimmer	access:private	signature:(BitIStream& bis, BitOStream& bos, size_t n)
-CopyConstantSubframe	Trimmer.cpp	/^void Trimmer::CopyConstantSubframe(BitIStream& bis, BitOStream& bos, size_t bitsCount)$/;"	f	class:Trimmer	signature:(BitIStream& bis, BitOStream& bos, size_t bitsCount)
-CopyConstantSubframe	Trimmer.hpp	/^		void CopyConstantSubframe(BitIStream& bis, BitOStream& bos, size_t bitsCount);$/;"	p	class:Trimmer	access:private	signature:(BitIStream& bis, BitOStream& bos, size_t bitsCount)
-CopyVerbatimSubframe	Trimmer.cpp	/^void CopyVerbatimSubframe(BitIStream& bis, BitOStream& bos, size_t bytesCount);$/;"	p	file:	signature:(BitIStream& bis, BitOStream& bos, size_t bytesCount)
-CopyVerbatimSubframe	Trimmer.hpp	/^		void CopyVerbatimSubframe(BitIStream& bis, BitOStream& bos, size_t bytesCount);$/;"	p	class:Trimmer	access:private	signature:(BitIStream& bis, BitOStream& bos, size_t bytesCount)
+CopyConstantSubframe	Trimmer.cpp	/^void Trimmer::CopyConstantSubframe(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi)$/;"	f	class:Trimmer	signature:(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi)
+CopyConstantSubframe	Trimmer.hpp	/^		void CopyConstantSubframe(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi);$/;"	p	class:Trimmer	access:private	signature:(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi)
+CopyFixedSubframe	Trimmer.hpp	/^		void CopyFixedSubframe(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi);$/;"	p	class:Trimmer	access:private	signature:(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi)
+CopyLPCSubframe	Trimmer.hpp	/^		void CopyLPCSubframe(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi, FLACSubframeHeader * sfh);$/;"	p	class:Trimmer	access:private	signature:(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi, FLACSubframeHeader * sfh)
+CopyVerbatimSubframe	Trimmer.cpp	/^void Trimmer::CopyVerbatimSubframe(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi)$/;"	f	class:Trimmer	signature:(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi)
+CopyVerbatimSubframe	Trimmer.hpp	/^		void CopyVerbatimSubframe(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi);$/;"	p	class:Trimmer	access:private	signature:(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi)
 CueParser	CueParser.hpp	/^class CueParser$/;"	c
 CutTrack	Trimmer.cpp	/^void Trimmer::CutTrack(string outputFLACFile, unsigned int leftSecond, unsigned int rightSecond)$/;"	f	class:Trimmer	signature:(string outputFLACFile, unsigned int leftSecond, unsigned int rightSecond)
 CutTrack	Trimmer.hpp	/^		void CutTrack(string outputFLACFile, unsigned int leftSecond, unsigned int rightSecond);$/;"	p	class:Trimmer	access:public	signature:(string outputFLACFile, unsigned int leftSecond, unsigned int rightSecond)
 DEFINES_H	defines.hpp	2;"	d
 EXCEPTIONS_HPP	exceptions.hpp	2;"	d
-FLACError	exceptions.hpp	/^class FLACError : public std::exeception$/;"	c	inherits:std::exeception
+FLACError	exceptions.hpp	/^class FLACError\/* : public std::exeception*\/$/;"	c
 FLACError::what	exceptions.hpp	/^	virtual const char* what() const throw()$/;"	f	class:FLACError	access:public	signature:() const
 FLACFrameHeader	flac_defines.hpp	/^struct FLACFrameHeader$/;"	s
 FLACFrameHeader::BitsPerSample	flac_defines.hpp	/^	uint8_t BitsPerSample;$/;"	m	struct:FLACFrameHeader	access:public
@@ -155,9 +157,8 @@ GetCurrentByte	ByteStream.hpp	/^	uint8_t GetCurrentByte()$/;"	f	class:ByteOBuffe
 GetNextByte	ByteStream.hpp	/^	uint8_t GetNextByte()$/;"	f	class:ByteIBuffer	access:public	signature:()
 GetUnencSubblockSize	Trimmer.cpp	/^uint16_t Trimmer::GetUnencSubblockSize(FLACFrameHeader * fh, FLACMetaStreamInfo * msi)$/;"	f	class:Trimmer	signature:(FLACFrameHeader * fh, FLACMetaStreamInfo * msi)
 GetUnencSubblockSize	Trimmer.hpp	/^		uint16_t GetUnencSubblockSize(FLACFrameHeader * fh, FLACMetaStreamInfo * msi);$/;"	p	class:Trimmer	access:private	signature:(FLACFrameHeader * fh, FLACMetaStreamInfo * msi)
-GetUnencodedSamplesCount	flactrim.cpp	/^uint16_t GetUnencodedSamplesCount(uint8_t frameBitsPerSample, uint8_t siBitsPerSample, uint8_t order)$/;"	f	signature:(uint8_t frameBitsPerSample, uint8_t siBitsPerSample, uint8_t order)
-GetWarmUpSamplesCount	Trimmer.cpp	/^uint16_t Trimmer::GetWarmUpSamplesCount(FLACFrameHeader * fh, FLACMetaStreamInfo * msi, uint8_t order)$/;"	f	class:Trimmer	signature:(FLACFrameHeader * fh, FLACMetaStreamInfo * msi, uint8_t order)
-GetWarmUpSamplesCount	Trimmer.hpp	/^		uint16_t GetWarmUpSamplesCount(FLACFrameHeader * fh, FLACMetaStreamInfo * msi, uint8_t order);$/;"	p	class:Trimmer	access:private	signature:(FLACFrameHeader * fh, FLACMetaStreamInfo * msi, uint8_t order)
+GetWarmUpSamplesSize	Trimmer.cpp	/^uint16_t Trimmer::GetWarmUpSamplesSize(FLACFrameHeader * fh, FLACMetaStreamInfo * msi, FLACSubframeHeader * sfh)$/;"	f	class:Trimmer	signature:(FLACFrameHeader * fh, FLACMetaStreamInfo * msi, FLACSubframeHeader * sfh)
+GetWarmUpSamplesSize	Trimmer.hpp	/^		uint16_t GetWarmUpSamplesSize(FLACFrameHeader * fh, FLACMetaStreamInfo * msi, FLACSubframeHeader * sfh);$/;"	p	class:Trimmer	access:private	signature:(FLACFrameHeader * fh, FLACMetaStreamInfo * msi, FLACSubframeHeader * sfh)
 IOBUFFERSIZE	defines.hpp	/^const size_t IOBUFFERSIZE = 8192;$/;"	v
 Init	ByteStream.hpp	/^	void Init(std::string fileName)$/;"	f	class:ByteIBuffer	access:public	signature:(std::string fileName)
 Init	ByteStream.hpp	/^	void Init(std::string fileName)$/;"	f	class:ByteOBuffer	access:public	signature:(std::string fileName)
@@ -170,7 +171,7 @@ MaxBlockSize	flac_defines.hpp	/^	uint16_t MinBlockSize, MaxBlockSize;$/;"	m	stru
 MaxFrameSize	flac_defines.hpp	/^	uint32_t MinFrameSize, MaxFrameSize;$/;"	m	struct:FLACMetaStreamInfo	access:public
 MinBlockSize	flac_defines.hpp	/^	uint16_t MinBlockSize, MaxBlockSize;$/;"	m	struct:FLACMetaStreamInfo	access:public
 MinFrameSize	flac_defines.hpp	/^	uint32_t MinFrameSize, MaxFrameSize;$/;"	m	struct:FLACMetaStreamInfo	access:public
-NoFLACFile	exceptions.hpp	/^class NoFLACFile : FLACError$/;"	c	inherits:FLACError
+NoFLACFile	exceptions.hpp	/^class NoFLACFile : public FLACError$/;"	c	inherits:FLACError
 NoFLACFile::what	exceptions.hpp	/^	virtual const char* what() const throw()$/;"	f	class:NoFLACFile	access:public	signature:() const
 PeekBuffer	ByteStream.hpp	/^	void PeekBuffer(uint8_t * buffer, size_t count)$/;"	f	class:ByteIBuffer	access:public	signature:(uint8_t * buffer, size_t count)
 PeekNextByte	ByteStream.hpp	/^	uint8_t PeekNextByte()$/;"	f	class:ByteIBuffer	access:public	signature:()
@@ -207,17 +208,20 @@ Trimmer	Trimmer.hpp	/^		Trimmer(std::string FLACFileName) : fileName(FLACFileNam
 Trimmer	Trimmer.hpp	/^class Trimmer$/;"	c
 Trimmer::CopyBytes	Trimmer.cpp	/^void Trimmer::CopyBytes(BitIStream& bis, BitOStream& bos, size_t n)$/;"	f	class:Trimmer	signature:(BitIStream& bis, BitOStream& bos, size_t n)
 Trimmer::CopyBytes	Trimmer.hpp	/^		void CopyBytes(BitIStream& bis, BitOStream& bos, size_t n);$/;"	p	class:Trimmer	access:private	signature:(BitIStream& bis, BitOStream& bos, size_t n)
-Trimmer::CopyConstantSubframe	Trimmer.cpp	/^void Trimmer::CopyConstantSubframe(BitIStream& bis, BitOStream& bos, size_t bitsCount)$/;"	f	class:Trimmer	signature:(BitIStream& bis, BitOStream& bos, size_t bitsCount)
-Trimmer::CopyConstantSubframe	Trimmer.hpp	/^		void CopyConstantSubframe(BitIStream& bis, BitOStream& bos, size_t bitsCount);$/;"	p	class:Trimmer	access:private	signature:(BitIStream& bis, BitOStream& bos, size_t bitsCount)
-Trimmer::CopyVerbatimSubframe	Trimmer.hpp	/^		void CopyVerbatimSubframe(BitIStream& bis, BitOStream& bos, size_t bytesCount);$/;"	p	class:Trimmer	access:private	signature:(BitIStream& bis, BitOStream& bos, size_t bytesCount)
+Trimmer::CopyConstantSubframe	Trimmer.cpp	/^void Trimmer::CopyConstantSubframe(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi)$/;"	f	class:Trimmer	signature:(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi)
+Trimmer::CopyConstantSubframe	Trimmer.hpp	/^		void CopyConstantSubframe(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi);$/;"	p	class:Trimmer	access:private	signature:(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi)
+Trimmer::CopyFixedSubframe	Trimmer.hpp	/^		void CopyFixedSubframe(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi);$/;"	p	class:Trimmer	access:private	signature:(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi)
+Trimmer::CopyLPCSubframe	Trimmer.hpp	/^		void CopyLPCSubframe(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi, FLACSubframeHeader * sfh);$/;"	p	class:Trimmer	access:private	signature:(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi, FLACSubframeHeader * sfh)
+Trimmer::CopyVerbatimSubframe	Trimmer.cpp	/^void Trimmer::CopyVerbatimSubframe(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi)$/;"	f	class:Trimmer	signature:(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi)
+Trimmer::CopyVerbatimSubframe	Trimmer.hpp	/^		void CopyVerbatimSubframe(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi);$/;"	p	class:Trimmer	access:private	signature:(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi)
 Trimmer::CutTrack	Trimmer.cpp	/^void Trimmer::CutTrack(string outputFLACFile, unsigned int leftSecond, unsigned int rightSecond)$/;"	f	class:Trimmer	signature:(string outputFLACFile, unsigned int leftSecond, unsigned int rightSecond)
 Trimmer::CutTrack	Trimmer.hpp	/^		void CutTrack(string outputFLACFile, unsigned int leftSecond, unsigned int rightSecond);$/;"	p	class:Trimmer	access:public	signature:(string outputFLACFile, unsigned int leftSecond, unsigned int rightSecond)
 Trimmer::GetBitsPerSample	Trimmer.cpp	/^uint8_t Trimmer::GetBitsPerSample(FLACFrameHeader * fh, FLACMetaStreamInfo * msi)$/;"	f	class:Trimmer	signature:(FLACFrameHeader * fh, FLACMetaStreamInfo * msi)
 Trimmer::GetBitsPerSample	Trimmer.hpp	/^		uint8_t GetBitsPerSample(FLACFrameHeader * fh, FLACMetaStreamInfo * msi);$/;"	p	class:Trimmer	access:private	signature:(FLACFrameHeader * fh, FLACMetaStreamInfo * msi)
 Trimmer::GetUnencSubblockSize	Trimmer.cpp	/^uint16_t Trimmer::GetUnencSubblockSize(FLACFrameHeader * fh, FLACMetaStreamInfo * msi)$/;"	f	class:Trimmer	signature:(FLACFrameHeader * fh, FLACMetaStreamInfo * msi)
 Trimmer::GetUnencSubblockSize	Trimmer.hpp	/^		uint16_t GetUnencSubblockSize(FLACFrameHeader * fh, FLACMetaStreamInfo * msi);$/;"	p	class:Trimmer	access:private	signature:(FLACFrameHeader * fh, FLACMetaStreamInfo * msi)
-Trimmer::GetWarmUpSamplesCount	Trimmer.cpp	/^uint16_t Trimmer::GetWarmUpSamplesCount(FLACFrameHeader * fh, FLACMetaStreamInfo * msi, uint8_t order)$/;"	f	class:Trimmer	signature:(FLACFrameHeader * fh, FLACMetaStreamInfo * msi, uint8_t order)
-Trimmer::GetWarmUpSamplesCount	Trimmer.hpp	/^		uint16_t GetWarmUpSamplesCount(FLACFrameHeader * fh, FLACMetaStreamInfo * msi, uint8_t order);$/;"	p	class:Trimmer	access:private	signature:(FLACFrameHeader * fh, FLACMetaStreamInfo * msi, uint8_t order)
+Trimmer::GetWarmUpSamplesSize	Trimmer.cpp	/^uint16_t Trimmer::GetWarmUpSamplesSize(FLACFrameHeader * fh, FLACMetaStreamInfo * msi, FLACSubframeHeader * sfh)$/;"	f	class:Trimmer	signature:(FLACFrameHeader * fh, FLACMetaStreamInfo * msi, FLACSubframeHeader * sfh)
+Trimmer::GetWarmUpSamplesSize	Trimmer.hpp	/^		uint16_t GetWarmUpSamplesSize(FLACFrameHeader * fh, FLACMetaStreamInfo * msi, FLACSubframeHeader * sfh);$/;"	p	class:Trimmer	access:private	signature:(FLACFrameHeader * fh, FLACMetaStreamInfo * msi, FLACSubframeHeader * sfh)
 Trimmer::ReadFrameHeader	Trimmer.cpp	/^void Trimmer::ReadFrameHeader(BitIStream& bs, FLACFrameHeader * fh)$/;"	f	class:Trimmer	signature:(BitIStream& bs, FLACFrameHeader * fh)
 Trimmer::ReadFrameHeader	Trimmer.hpp	/^		void ReadFrameHeader(BitIStream& bs, FLACFrameHeader * fh);$/;"	p	class:Trimmer	access:private	signature:(BitIStream& bs, FLACFrameHeader * fh)
 Trimmer::ReadMetaBlockHeader	Trimmer.cpp	/^void Trimmer::ReadMetaBlockHeader(BitIStream& bs, FLACMetaBlockHeader * mbh)$/;"	f	class:Trimmer	signature:(BitIStream& bs, FLACMetaBlockHeader * mbh)
