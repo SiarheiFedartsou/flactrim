@@ -36,14 +36,18 @@ class Trimmer
 		void ReadSubframeHeader(BitIStream& bs, FLACSubframeHeader * sfh);
 		void WriteSubframeHeader(BitOStream& bs, FLACSubframeHeader * sfh);
 
+		void CopyConstantSubframe(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi);
+		void CopyVerbatimSubframe(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi);
+		void CopyFixedSubframe(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi);
+		void CopyLPCSubframe(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi);
+
 
 		void CopyBytes(BitIStream& bis, BitOStream& bos, size_t n);
+		
 		uint8_t GetBitsPerSample(FLACFrameHeader * fh, FLACMetaStreamInfo * msi);
-		void CopyConstantSubframe(BitIStream& bis, BitOStream& bos, size_t bitsCount);
-
 		uint16_t GetUnencSubblockSize(FLACFrameHeader * fh, FLACMetaStreamInfo * msi);
-		void CopyVerbatimSubframe(BitIStream& bis, BitOStream& bos, size_t bytesCount);
-
+		uint16_t GetWarmUpSamplesCount(FLACFrameHeader * fh, FLACMetaStreamInfo * msi, uint8_t order);
+	
 		/*	BitIStream * bis;
 		BitOStream * bos;*/
 };

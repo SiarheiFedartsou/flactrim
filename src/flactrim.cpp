@@ -21,56 +21,6 @@ namespace po = boost::program_options;
 using namespace std;
 
 
-uint16_t GetUnencodedSamplesCount(uint8_t frameBitsPerSample, uint8_t siBitsPerSample, uint8_t order)
-{
-	switch (frameBitsPerSample)
-	{
-		case 0b000:
-			return siBitsPerSample * order;
-		case 0b001:
-			return 8 * order;
-		case 0b010:
-			return 12 * order;
-		case 0b100:
-			return 16 * order;
-		case 0b101:
-			return 20 * order;
-		case 0b110:
-			return 24 * order;
-		default:
-			return 0;
-	}
-}
-
-uint8_t GetBitsPerSample(uint8_t frameBitsPerSample, uint8_t siBitsPerSample)
-{
-	switch (frameBitsPerSample)
-	{
-		case 0b001:
-			return 8;
-		case 0b010:
-			return 12;
-		case 0b100:
-			return 16;
-		case 0b101:
-			return 20;
-		case 0b110:
-			return 24;
-		default:
-			return siBitsPerSample + 1;
-	}
-}
-
-uint16_t GetUnencodedSubblockCount(FLACFrameHeader * fh, uint8_t siBlockSize, uint8_t siBitsPerSample)
-{
-	if (fh->BlockSize == 0b0000) return siBlockSize * GetBitsPerSample(fh->BitsPerSample, siBitsPerSample);
-	else if (fh->BlockSize == 0b0001) return 192 * GetBitsPerSample(fh->BitsPerSample, siBitsPerSample);
-	else if (0b0010 <= fh->BlockSize && fh->BlockSize <= 0b0101 ) return 576 * (pow(2, fh->BlockSize - 2)) *  GetBitsPerSample(fh->BitsPerSample, siBitsPerSample);
-	else if (fh->BlockSize == 0b0110 || fh->BlockSize == 0b0111) return (fh->VariableBlockSize + 1) * GetBitsPerSample(fh->BitsPerSample, siBitsPerSample);
-	else return 256 * pow(2, fh->BlockSize - 8) * GetBitsPerSample(fh->BitsPerSample, siBitsPerSample);
-
-}
-
 int main(int argc, char** argv)
 {
 	po::options_description desc("Usage");
@@ -102,100 +52,11 @@ int main(int argc, char** argv)
 
 	BitIStream bs("/home/miksayer/Files/Music/4.flac");
 	BitOStream bos("/home/miksayer/Files/Music/10.test");
-
-   /* if (bs.GetString(3) == "ID3")
-    {
-    	bs.Skip(3);
-    	uint32_t id3size = 0;
-    	uint32_t b1 = 0, b2 = 0, b3 = 0, b4 = 0;
-    	bs.GetInteger(&b1, 8);
-    	bs.GetInteger(&b2, 8);
-    	bs.GetInteger(&b3, 8);
-    	bs.GetInteger(&b4, 8);
-    	id3size = (b1 << 21) | (b2 << 14) | (b3 << 7) | b4;
-    	bs.Skip(id3size);
-    }*/
-	uint64_t flac_null = 0;
-	uint16_t minBlockSize = 0; //minimal size of block in samples in current stream
-	uint16_t maxBlockSize = 0; //maximal size of block in samples in current stream
-	uint32_t minFrameSize = 0; //minimal size of frame in bytes in current stream
-	uint32_t maxFrameSize = 0; //maximal size of frame in bytes in current stream
-	uint32_t samplingHz = 0; //sampling in Hz
-	uint8_t channelsCount = 0; //(channels count - 1)
-	uint8_t bitsPerSample = 0; //(bits per sample - 1)
-	uint64_t streamSamplesCount = 0; //number of samples in the stream
-	uint8_t md5[16]; //MD5
-	uint8_t * buf;
-
-    if (bs.ReadString(4) != "fLaC")
-    {
-    	std::cerr << "No FLAC file" << std::endl;
-    	return 1;
-    }
-	bos.WriteString("fLaC");
-    FLACMetaBlockHeader mbh;
-	mbh.IsLastBlock = false;
-
-	while (!mbh.IsLastBlock)
-	{
-		ReadMetaBlockHeader(bs, &mbh);
-		WriteMetaBlockHeader(bos, &mbh);
-		switch (mbh.BlockType)
-		{
-			case FLAC_META_STREAMINFO:
-				bs.ReadInteger(&minBlockSize, 16);
-				bs.ReadInteger(&maxBlockSize, 16);
-				bs.ReadInteger(&minFrameSize, 24);
-				bs.ReadInteger(&maxFrameSize, 24);
-				bs.ReadInteger(&samplingHz, 20);
-				bs.ReadInteger(&channelsCount, 3);
-				bs.ReadInteger(&bitsPerSample, 5);
-				bs.ReadInteger(&streamSamplesCount, 36);
-				bs.ReadAlignBuffer(md5, 16);
-
- 
-
-				bos.WriteInteger(minBlockSize, 16);
-				bos.WriteInteger(maxBlockSize, 16);
-				bos.WriteInteger(minFrameSize, 24);
-				bos.WriteInteger(maxFrameSize, 24);
-				bos.WriteInteger(samplingHz, 20);
-				bos.WriteInteger(channelsCount, 3);
-				bos.WriteInteger(bitsPerSample, 5);
-				bos.WriteInteger(streamSamplesCount, 36);
-				bos.WriteAlignBuffer(md5, 16);
-
-			break;
-			case FLAC_META_SEEKTABLE:
-			case FLAC_META_APPLICATION:
-			case FLAC_META_VORBIS_COMMENT:
-			case FLAC_META_CUESHEET:
-			case FLAC_META_PADDING:
-				buf = new uint8_t[mbh.BlockSize];
-				bs.ReadAlignBuffer(buf, mbh.BlockSize);
-				bos.WriteAlignBuffer(buf, mbh.BlockSize);
-				delete[] buf;
-			break;
-
-			default:
-				cerr << "Warning: unknown block type" << endl;
-				buf = new uint8_t[mbh.BlockSize];
-				bs.ReadAlignBuffer(buf, mbh.BlockSize);
-				bos.WriteAlignBuffer(buf, mbh.BlockSize);
-				delete[] buf;
-			break;
-		}
-				
-	}
 //	while (mbh.IsLastBlock == 0);
 
 //	for (int i = 0; i < 512; i++)
 //	{
-		FLACFrameHeader fh;
-		ReadFrameHeader(bs, &fh);
-		WriteFrameHeader(bos, &fh);
-
-		for (int j = 0; j <= channelsCount; j++)
+		for (int j = 0; j <= channelsCount0:channelsCount; j++)
 		{
 			uint16_t constant_sample = 0;
 			uint8_t * buf;
@@ -216,8 +77,6 @@ int main(int argc, char** argv)
 			switch (sfh.type)
 			{
 				case FLAC_SF_CONSTANT:
-					bs.ReadInteger(&constant_sample, 16);
-					bos.WriteInteger(constant_sample, 16);
 				break;
 				case FLAC_SF_LPC:
 					n = GetUnencodedSamplesCount(fh.BitsPerSample, bitsPerSample, sfh.order);
@@ -240,11 +99,6 @@ std::cout << (unsigned int)linearPredictor << endl;
 					bos.WriteInteger(unencPredCoeffs, n);
 				break;
 				case FLAC_SF_VERBATIM:
-					n = GetUnencodedSubblockCount(&fh, maxBlockSize, bitsPerSample);
-					buf = new uint8_t[n / BITSINBYTE];
-					bs.ReadBuffer(buf, n / BITSINBYTE);
-					bos.WriteBuffer(buf, n / BITSINBYTE);
-					delete[] buf;
 				break;
 				case FLAC_SF_FIXED:
 				break;

@@ -2,7 +2,19 @@
 
 void Trimmer::CutTrack(string outputFLACFile, unsigned int leftSecond, unsigned int rightSecond)
 {
-	uint8_t * buf;
+   /* if (bs.GetString(3) == "ID3")
+    {
+    	bs.Skip(3);
+    	uint32_t id3size = 0;
+    	uint32_t b1 = 0, b2 = 0, b3 = 0, b4 = 0;
+    	bs.GetInteger(&b1, 8);
+    	bs.GetInteger(&b2, 8);
+    	bs.GetInteger(&b3, 8);
+    	bs.GetInteger(&b4, 8);
+    	id3size = (b1 << 21) | (b2 << 14) | (b3 << 7) | b4;
+    	bs.Skip(id3size);
+    }*/
+
 	BitIStream bis(fileName);
 	BitOStream bos(outputFileName);
 	FLACMetaStreamInfo msi;
@@ -54,9 +66,10 @@ void Trimmer::CutTrack(string outputFLACFile, unsigned int leftSecond, unsigned 
 		switch (sfh.type)
 		{
 			case FLAC_SF_CONSTANT:
-				CopyConstantSubframe(bis, bos, GetBitsPerSample(fh, msi));
+				CopyConstantSubframe(bis, bos, fh, msi);
 			break;
 			case FLAC_SF_VERBATIM:
+				CopyVerbatimSubframe(bis, bos, fh, msi);
 			break;
 			case FLAC_SF_FIXED:
 			break;
@@ -309,21 +322,33 @@ uint8_t Trimmer::GetBitsPerSample(FLACFrameHeader * fh, FLACMetaStreamInfo * msi
 	}
 }
 
-void Trimmer::CopyConstantSubframe(BitIStream& bis, BitOStream& bos, size_t bitsCount)
+void Trimmer::CopyConstantSubframe(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi)
 {
+	size_t bitsCount = GetBitsPerSample(fh, msi);
 	uint64_t constant = 0;
 	bis.ReadInteger(&constant, bitsCount);
 	bos.WriteInteger(constant, bitsCount);
 }
 
+void Trimmer::CopyVerbatimSubframe(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi)
+{
+	CopyBytes(bis, bos, GetUnencSubblockSize(fh, msi));
+}
+
 
 uint16_t Trimmer::GetUnencSubblockSize(FLACFrameHeader * fh, FLACMetaStreamInfo * msi)
 {
-
+	if (fh->BlockSize == 0b0000) return msi->MinBlockSize * GetBitsPerSample(fh->BitsPerSample, msi->BitsPerSample);
+	else if (fh->BlockSize == 0b0001) return 192 * GetBitsPerSample(fh->BitsPerSample, msi->BitsPerSample);
+	else if (0b0010 <= fh->BlockSize && fh->BlockSize <= 0b0101 ) return 576 * (pow(2, fh->BlockSize - 2)) *  GetBitsPerSample(fh->BitsPerSample, msi->BitsPerSample);
+	else if (fh->BlockSize == 0b0110 || fh->BlockSize == 0b0111) return (fh->VariableBlockSize + 1) * GetBitsPerSample(fh->BitsPerSample, msi->BitsPerSample);
+	else return 256 * pow(2, fh->BlockSize - 8) * GetBitsPerSample(fh->BitsPerSample, msi->BitsPerSample);
 }
 
-void CopyVerbatimSubframe(BitIStream& bis, BitOStream& bos, size_t bytesCount);
+uint16_t Trimmer::GetWarmUpSamplesCount(FLACFrameHeader * fh, FLACMetaStreamInfo * msi, uint8_t order)
 {
-	CopyBytes(bis, bos, bytesCount);
+	return GetBitsPerSample(fh, msi) * order;
 }
+
+
 

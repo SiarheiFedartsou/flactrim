@@ -22,7 +22,7 @@ public:
 
 };
 
-class FLACError : public std::exeception
+class FLACError/* : public std::exeception*/
 {
 public:
 	virtual const char* what() const throw()
@@ -31,7 +31,7 @@ public:
 	}
 };
 
-class NoFLACFile : FLACError
+class NoFLACFile : public FLACError
 {
 public:
 	virtual const char* what() const throw()
