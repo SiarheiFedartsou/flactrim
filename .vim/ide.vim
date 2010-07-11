@@ -40,3 +40,9 @@ au BufReadPost * :call MySetIdeSyntax()
 "	au VimEnter * silent source ide.session
 " endif
 " Загружаем ранее сохраненную сессию
+"
+function! PushGit(comment)
+	cd ..
+	:Git add .
+	:Git commit -m comment
+endfunction

@@ -1,5 +1,5 @@
 #include "Trimmer.hpp"
-fgghjhg
+fgghjhgghjgh
 void Trimmer::CutTrack(string outputFLACFile, unsigned int leftSecond, unsigned int rightSecond)
 {
    /* if (bs.GetString(3) == "ID3")
