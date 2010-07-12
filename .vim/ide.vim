@@ -35,10 +35,10 @@ endfunction
 au BufReadPost * :call MySetIdeSyntax()
 " Загружаем ранее сохраненную сессию
 "
-function! PushGit(comment)
+function! PushGit(Comment)
 	cd .. 
 	Git add .
-	Git commit -m string(a:comment)
+	exec "!git commit -m" . a:Comment
 	Git push origin master
 	cd src
 endfunction

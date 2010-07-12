@@ -54,6 +54,7 @@ void Trimmer::CutTrack(string outputFLACFile, unsigned int leftSecond, unsigned 
 			break;
 		}
 	}
+	//Frame start
 	FLACFrameHeader fh;
 	ReadFrameHeader(bis, &fh);
 	WriteFrameHeader(bos, &fh);
@@ -83,14 +84,13 @@ void Trimmer::CutTrack(string outputFLACFile, unsigned int leftSecond, unsigned 
 			break;
 		}
 	}
-	//--------------------------------------------------
-	// bos.AlignByte();
-	//-------------------------------------------------- 
+	bos.AlignByte();
 	//--------------------------------------------------
 	// int16_t crc16;
 	// bis.ReadInteger(&crc16, 16);
 	// bos.WriteInteger(crc16, 16);
 	//-------------------------------------------------- 
+	//Frame end
 	
 }
 
