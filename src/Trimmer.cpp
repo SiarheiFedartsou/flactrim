@@ -72,6 +72,7 @@ void Trimmer::CutTrack(string outputFLACFile, unsigned int leftSecond, unsigned 
 				CopyVerbatimSubframe(bis, bos, fh, msi);
 			break;
 			case FLAC_SF_FIXED:
+				CopyFixedSubframe(bis, bos, fh, msi);
 			break;
 			case FLAC_SF_LPC:
 				CopyLPCSubframe(bis, bos, fh, msi, sfh);
@@ -334,6 +335,17 @@ void Trimmer::CopyConstantSubframe(BitIStream& bis, BitOStream& bos, FLACFrameHe
 void Trimmer::CopyVerbatimSubframe(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi)
 {
 	CopyBytes(bis, bos, GetUnencSubblockSize(fh, msi));
+}
+
+void Trimmer::CopyFixedSubframe(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi)
+{
+
+}
+
+void Trimmer::CopyLPCSubframe(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi, FLACSubframeHeader * sfh)
+{
+	CopyBytes(bis, bos, GetWarmUpSamplesSize(fh, msi, sfh));
+	
 }
 
 

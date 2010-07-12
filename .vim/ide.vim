@@ -33,12 +33,6 @@ endfunction
 " При открытии нового буфера устанавливаем для него
 " правила синтаксиса, специфичные для данного проекта.
 au BufReadPost * :call MySetIdeSyntax()
-" При закрытии Vim'а сохраняем информацию о текущей сессии
-" au VimLeavePre * silent mksession! ide.session
-
-" if getfsize("ide.session") >= 0i 
-"	au VimEnter * silent source ide.session
-" endif
 " Загружаем ранее сохраненную сессию
 "
 function! PushGit(comment)

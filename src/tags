@@ -4,6 +4,8 @@
 !_TAG_PROGRAM_NAME	Exuberant Ctags	//
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
 !_TAG_PROGRAM_VERSION	5.8	//
+0	ide.session.vim	/^normal! 0$/;"	m
+0	session.vim	/^normal! 0$/;"	m
 AlignByte	BitOStream.hpp	/^	void AlignByte()$/;"	f	class:BitOStream	access:public	signature:()
 BITISTREAM_H	BitIStream.hpp	2;"	d
 BITOSTREAM_H	BitOStream.hpp	2;"	d
@@ -198,6 +200,8 @@ ReadSubframeHeader	Trimmer.cpp	/^void Trimmer::ReadSubframeHeader(BitIStream& bs
 ReadSubframeHeader	Trimmer.hpp	/^		void ReadSubframeHeader(BitIStream& bs, FLACSubframeHeader * sfh);$/;"	p	class:Trimmer	access:private	signature:(BitIStream& bs, FLACSubframeHeader * sfh)
 Sampling	flac_defines.hpp	/^	uint32_t Sampling;$/;"	m	struct:FLACMetaStreamInfo	access:public
 Sampling	flac_defines.hpp	/^	uint8_t Sampling;$/;"	m	struct:FLACFrameHeader	access:public
+SessionLoad	ide.session.vim	/^let SessionLoad = 1$/;"	v
+SessionLoad	session.vim	/^let SessionLoad = 1$/;"	v
 SetCurrentByte	ByteStream.hpp	/^	void SetCurrentByte(uint8_t _currentByte)$/;"	f	class:ByteOBuffer	access:public	signature:(uint8_t _currentByte)
 SkipByte	ByteStream.hpp	/^	void SkipByte()$/;"	f	class:ByteIBuffer	access:public	signature:()
 SkipBytes	BitIStream.hpp	/^	void SkipBytes(size_t byteCount)$/;"	f	class:BitIStream	access:public	signature:(size_t byteCount)
@@ -288,12 +292,24 @@ operator >>	BitIStream.hpp	/^	template<typename T> void operator>>(T& op)$/;"	f	
 operator char * const	ByteStream.hpp	/^	operator char * const()$/;"	f	class:ByteIBuffer	access:public	signature:()
 order	flac_defines.hpp	/^	uint8_t order;$/;"	m	struct:FLACSubframeHeader	access:public
 peekByteBuffer	ByteStream.hpp	/^	uint8_t peekByteBuffer[size];$/;"	m	class:ByteIBuffer	access:private
+s:l	ide.session.vim	/^let s:l = 1 - ((0 * winheight(0) + 27) \/ 55)$/;"	v
+s:l	ide.session.vim	/^let s:l = 1 - ((0 * winheight(0) + 28) \/ 56)$/;"	v
+s:l	session.vim	/^let s:l = 1 - ((0 * winheight(0) + 27) \/ 55)$/;"	v
+s:l	session.vim	/^let s:l = 1 - ((0 * winheight(0) + 28) \/ 56)$/;"	v
+s:so_save	ide.session.vim	/^let s:so_save = &so | let s:siso_save = &siso | set so=0 siso=0$/;"	v
+s:so_save	session.vim	/^let s:so_save = &so | let s:siso_save = &siso | set so=0 siso=0$/;"	v
+s:sx	ide.session.vim	/^let s:sx = expand("<sfile>:p:r")."x.vim"$/;"	v
+s:sx	session.vim	/^let s:sx = expand("<sfile>:p:r")."x.vim"$/;"	v
+s:wipebuf	ide.session.vim	/^  let s:wipebuf = bufnr('%')$/;"	v
+s:wipebuf	session.vim	/^  let s:wipebuf = bufnr('%')$/;"	v
 type	flac_defines.hpp	/^	FLACSubframeType type;$/;"	m	struct:FLACSubframeHeader	access:public
 waste	flac_defines.hpp	/^	uint64_t waste;$/;"	m	struct:FLACSubframeHeader	access:public
 what	exceptions.hpp	/^	virtual const char* what() const throw()$/;"	f	class:FLACError	access:public	signature:() const
 what	exceptions.hpp	/^	virtual const char* what() const throw()$/;"	f	class:NoFLACFile	access:public	signature:() const
 what	exceptions.hpp	/^	virtual const char* what() const throw()$/;"	f	class:TypeOverflow	access:public	signature:() const
 what	exceptions.hpp	/^	virtual const char* what() const throw()$/;"	f	class:UnexpectedEOF	access:public	signature:() const
+zt	ide.session.vim	/^normal! zt$/;"	m
+zt	session.vim	/^normal! zt$/;"	m
 ~ByteIBuffer	ByteStream.hpp	/^	~ByteIBuffer()$/;"	f	class:ByteIBuffer	access:public	signature:()
 ~ByteOBuffer	ByteStream.hpp	/^	~ByteOBuffer()$/;"	f	class:ByteOBuffer	access:public	signature:()
 ~Trimmer	Trimmer.hpp	/^		~Trimmer()$/;"	f	class:Trimmer	access:public	signature:()
