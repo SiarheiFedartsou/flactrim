@@ -22,7 +22,7 @@ public:
     }
 	template<typename T> void operator<<(T& op)
 	{
-		WriteInteger(&op, sizeof(T));
+		WriteInteger(&op, sizeof(T) * BITSINBYTE);
 	};
 
 	void WriteAlignBuffer(uint8_t * buffer, size_t count)

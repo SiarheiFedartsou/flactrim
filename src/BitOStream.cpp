@@ -25,7 +25,7 @@ void BitOStream::WriteByte(uint8_t byte, unsigned short bitCount)
 		cur |= byte << (freeDigitsCount - bitCount);
 		byteBuffer.SetCurrentByte(cur);
 		freeDigitsCount -= bitCount;
-    }            
+    }
 }
 
 void BitOStream::WriteString(std::string str)

@@ -1,4 +1,5 @@
 #include "Trimmer.hpp"
+#include <limits>
 
 void Trimmer::CutTrack(string outputFLACFile, unsigned int leftSecond, unsigned int rightSecond)
 {
@@ -16,7 +17,7 @@ void Trimmer::CutTrack(string outputFLACFile, unsigned int leftSecond, unsigned 
     }*/
 
 	BitIStream bis(fileName);
-	BitOStream bos(outputFileName);
+	BitOStream bos(outputFLACFile);
 	FLACMetaStreamInfo msi;
 
 	if (bis.ReadString(4) != "fLaC")
@@ -36,7 +37,7 @@ void Trimmer::CutTrack(string outputFLACFile, unsigned int leftSecond, unsigned 
 		{
 			case FLAC_META_STREAMINFO:
 				ReadStreamInfo(bis, &msi);
-				WriteStreamInfo(bos, &msi)
+				WriteStreamInfo(bos, &msi);
 			break;
 
 			case FLAC_META_SEEKTABLE:
@@ -56,31 +57,41 @@ void Trimmer::CutTrack(string outputFLACFile, unsigned int leftSecond, unsigned 
 	FLACFrameHeader fh;
 	ReadFrameHeader(bis, &fh);
 	WriteFrameHeader(bos, &fh);
-	
-	for (int subframeN = 0; subframeN <= channelsCount; subframeN++)
+	for (int subframeN = 0; subframeN <= msi.ChannelsCount; subframeN++)
 	{
 		FLACSubframeHeader sfh;
 		ReadSubframeHeader(bis, &sfh);
 		WriteSubframeHeader(bos, &sfh);
-				
 		switch (sfh.type)
 		{
 			case FLAC_SF_CONSTANT:
-				CopyConstantSubframe(bis, bos, fh, msi);
+				
+				CopyConstantSubframe(bis, bos, &fh, &msi);
+
 			break;
 			case FLAC_SF_VERBATIM:
-				CopyVerbatimSubframe(bis, bos, fh, msi);
+				CopyVerbatimSubframe(bis, bos, &fh, &msi);
 			break;
 			case FLAC_SF_FIXED:
-				CopyFixedSubframe(bis, bos, fh, msi);
+				CopyFixedSubframe(bis, bos, &fh, &msi, &sfh);
 			break;
 			case FLAC_SF_LPC:
-				CopyLPCSubframe(bis, bos, fh, msi, sfh);
+				CopyLPCSubframe(bis, bos, &fh, &msi, &sfh);
+			
 			break;
 			default:
 			break;
 		}
 	}
+	//--------------------------------------------------
+	// bos.AlignByte();
+	//-------------------------------------------------- 
+	//--------------------------------------------------
+	// int16_t crc16;
+	// bis.ReadInteger(&crc16, 16);
+	// bos.WriteInteger(crc16, 16);
+	//-------------------------------------------------- 
+	
 }
 
 void Trimmer::ReadMetaBlockHeader(BitIStream& bs, FLACMetaBlockHeader * mbh)
@@ -296,12 +307,12 @@ void Trimmer::WriteSubframeHeader(BitOStream& bs, FLACSubframeHeader * sfh)
 	}
 }
 
-
+//TODO: write separated CopyBytes functions for align buffer and no align buffer
 void Trimmer::CopyBytes(BitIStream& bis, BitOStream& bos, size_t n)
 {
 	uint8_t * buf = new uint8_t[n];
-	bis.ReadAlignBuffer(buf, n);
-	bos.WriteAlignBuffer(buf, n);
+	bis.ReadBuffer(buf, n);
+	bos.WriteBuffer(buf, n);
 	delete[] buf;
 }
 
@@ -316,6 +327,45 @@ void Trimmer::CopyBits(BitIStream& bis, BitOStream& bos, size_t n)
 	}
 	bis.ReadInteger(&tmp, n);
 	bos.WriteInteger(tmp, n);
+
+}
+
+
+void Trimmer::CopyConstantSubframe(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi)
+{
+	size_t bitsCount = GetBitsPerSample(fh, msi);
+	uint64_t constant = 0;
+	bis.ReadInteger(&constant, bitsCount);
+	bos.WriteInteger(constant, bitsCount);
+}
+
+void Trimmer::CopyVerbatimSubframe(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi)
+{
+	if (GetUnencSubblockBitSize(fh, msi) % BITSINBYTE != 0) cerr << "GetUnencSubblockBitSize(fh, msi) % BITSINBYTE != 0" << endl;
+	CopyBytes(bis, bos, GetUnencSubblockBitSize(fh, msi) / BITSINBYTE);
+}
+
+void Trimmer::CopyFixedSubframe(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi, FLACSubframeHeader * sfh)
+{
+	if (GetWarmUpSamplesBitSize(fh, msi, sfh) % BITSINBYTE != 0) cerr << "GetWarmUpSamplesBitSize(fh, msi) % BITSINBYTE != 0" << endl;
+	CopyBytes(bis, bos, GetWarmUpSamplesBitSize(fh, msi, sfh) / BITSINBYTE);
+}
+
+void Trimmer::CopyLPCSubframe(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi, FLACSubframeHeader * sfh)
+{
+	uint8_t qlp = 0; // quantized linear predictor
+	uint8_t qlpCoeffShift = 0;
+	uint16_t unencQLPCoeffsBitSize = 0;
+	if (GetWarmUpSamplesBitSize(fh, msi, sfh) % BITSINBYTE != 0) cerr << "GetWarmUpSamplesBitSize(fh, msi) % BITSINBYTE != 0" << endl;
+	CopyBytes(bis, bos, GetWarmUpSamplesBitSize(fh, msi, sfh) / BITSINBYTE);
+	bis.ReadInteger(&qlp, 4);
+	bos.WriteInteger(qlp, 4);
+	bis.ReadInteger(&qlpCoeffShift, 5);
+	bos.WriteInteger(qlpCoeffShift, 5);
+
+	unencQLPCoeffsBitSize = qlp * sfh->order;
+	if (unencQLPCoeffsBitSize != 0)CopyBits(bis, bos, unencQLPCoeffsBitSize);
+
 
 }
 
@@ -339,52 +389,13 @@ uint8_t Trimmer::GetBitsPerSample(FLACFrameHeader * fh, FLACMetaStreamInfo * msi
 	}
 }
 
-void Trimmer::CopyConstantSubframe(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi)
+uint16_t Trimmer::GetUnencSubblockBitSize(FLACFrameHeader * fh, FLACMetaStreamInfo * msi)
 {
-	size_t bitsCount = GetBitsPerSample(fh, msi);
-	uint64_t constant = 0;
-	bis.ReadInteger(&constant, bitsCount);
-	bos.WriteInteger(constant, bitsCount);
-}
-
-void Trimmer::CopyVerbatimSubframe(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi)
-{
-	if (GetUnencSubblockSize(fh, msi) % BITSINBYTE != 0) cerr << "GetUnencSubblockSize(fh, msi) % BITSINBYTE != 0" << endl;
-	CopyBytes(bis, bos, GetUnencSubblockSize(fh, msi) / BITSINBYTE);
-}
-
-void Trimmer::CopyFixedSubframe(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi)
-{
-	if (GetWarmUpSamplesBitSize(fh, msi) % BITSINBYTE != 0) cerr << "GetWarmUpSamplesBitSize(fh, msi) % BITSINBYTE != 0" << endl;
-	CopyBytes(bis, bos, GetWarmUpSamplesBitSize(fh, msi, sfh) / BITSINBYTE);
-}
-
-void Trimmer::CopyLPCSubframe(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi, FLACSubframeHeader * sfh)
-{
-	uint8_t qlp = 0; // quantized linear predictor
-	uint8_t qlpCoeffShift = 0;
-	uint16_t unencQLPCoeffsBitSize = 0;
-	if (GetWarmUpSamplesBitSize(fh, msi) % BITSINBYTE != 0) cerr << "GetWarmUpSamplesBitSize(fh, msi) % BITSINBYTE != 0" << endl;
-	CopyBytes(bis, bos, GetWarmUpSamplesBitSize(fh, msi, sfh) / BITSINBYTE);
-	bis.ReadInteger(&qlp, 4);
-	bos.WriteInteger(qlp, 4);
-
-	bis.ReadInteger(&qlpCoeffShift, 5);
-	bos.WriteInteger(qlpCoeffShift, 5);
-
-	unencQLPCoeffsBitSize = qlp * sfh->order;
-	CopyBits(bis, bos, unencQLPCoeffsBitSize);
-
-}
-
-
-uint16_t Trimmer::GetUnencSubblockSize(FLACFrameHeader * fh, FLACMetaStreamInfo * msi)
-{
-	if (fh->BlockSize == 0b0000) return msi->MinBlockSize * GetBitsPerSample(fh->BitsPerSample, msi->BitsPerSample);
-	else if (fh->BlockSize == 0b0001) return 192 * GetBitsPerSample(fh->BitsPerSample, msi->BitsPerSample);
-	else if (0b0010 <= fh->BlockSize && fh->BlockSize <= 0b0101 ) return 576 * (pow(2, fh->BlockSize - 2)) *  GetBitsPerSample(fh->BitsPerSample, msi->BitsPerSample);
-	else if (fh->BlockSize == 0b0110 || fh->BlockSize == 0b0111) return (fh->VariableBlockSize + 1) * GetBitsPerSample(fh->BitsPerSample, msi->BitsPerSample);
-	else return 256 * pow(2, fh->BlockSize - 8) * GetBitsPerSample(fh->BitsPerSample, msi->BitsPerSample);
+	if (fh->BlockSize == 0b0000) return msi->MinBlockSize * GetBitsPerSample(fh, msi);
+	else if (fh->BlockSize == 0b0001) return 192 * GetBitsPerSample(fh, msi);
+	else if (0b0010 <= fh->BlockSize && fh->BlockSize <= 0b0101 ) return 576 * (pow(2, fh->BlockSize - 2)) *  GetBitsPerSample(fh, msi);
+	else if (fh->BlockSize == 0b0110 || fh->BlockSize == 0b0111) return (fh->VariableBlockSize + 1) * GetBitsPerSample(fh, msi);
+	else return 256 * pow(2, fh->BlockSize - 8) * GetBitsPerSample(fh, msi);
 }
 
 uint16_t Trimmer::GetWarmUpSamplesBitSize(FLACFrameHeader * fh, FLACMetaStreamInfo * msi, FLACSubframeHeader * sfh)
