@@ -43,6 +43,7 @@ class Trimmer
 
 
 		void CopyBytes(BitIStream& bis, BitOStream& bos, size_t n);
+		void CopyBits(BitIStream& bis, BitOStream& bos, size_t n);
 		
 		uint8_t GetBitsPerSample(FLACFrameHeader * fh, FLACMetaStreamInfo * msi);
 		uint16_t GetUnencSubblockBitSize(FLACFrameHeader * fh, FLACMetaStreamInfo * msi);

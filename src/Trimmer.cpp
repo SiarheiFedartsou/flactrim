@@ -305,6 +305,21 @@ void Trimmer::CopyBytes(BitIStream& bis, BitOStream& bos, size_t n)
 	delete[] buf;
 }
 
+void Trimmer::CopyBits(BitIStream& bis, BitOStream& bos, size_t n)
+{
+	uint64_t tmp = 0;
+	while (n / (sizeof(uint64_t) * BITSINBYTE) > 0)
+	{
+		bis.ReadInteger(&tmp, sizeof(uint64_t) * BITSINBYTE);
+		bos.WriteInteger(tmp, sizeof(uint64_t) * BITSINBYTE);
+		n -= sizeof(uint64_t) * BITSINBYTE;
+	}
+	bis.ReadInteger(&tmp, n);
+	bos.WriteInteger(tmp, n);
+
+}
+
+
 uint8_t Trimmer::GetBitsPerSample(FLACFrameHeader * fh, FLACMetaStreamInfo * msi)
 {
 	switch (fh->BitsPerSample)
@@ -345,9 +360,20 @@ void Trimmer::CopyFixedSubframe(BitIStream& bis, BitOStream& bos, FLACFrameHeade
 
 void Trimmer::CopyLPCSubframe(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi, FLACSubframeHeader * sfh)
 {
+	uint8_t qlp = 0; // quantized linear predictor
+	uint8_t qlpCoeffShift = 0;
+	uint16_t unencQLPCoeffsBitSize = 0;
 	if (GetWarmUpSamplesBitSize(fh, msi) % BITSINBYTE != 0) cerr << "GetWarmUpSamplesBitSize(fh, msi) % BITSINBYTE != 0" << endl;
 	CopyBytes(bis, bos, GetWarmUpSamplesBitSize(fh, msi, sfh) / BITSINBYTE);
-	
+	bis.ReadInteger(&qlp, 4);
+	bos.WriteInteger(qlp, 4);
+
+	bis.ReadInteger(&qlpCoeffShift, 5);
+	bos.WriteInteger(qlpCoeffShift, 5);
+
+	unencQLPCoeffsBitSize = qlp * sfh->order;
+	CopyBits(bis, bos, unencQLPCoeffsBitSize);
+
 }
 
 
