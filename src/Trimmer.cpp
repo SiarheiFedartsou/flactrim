@@ -1,5 +1,4 @@
 #include "Trimmer.hpp"
-#include <limits>
 
 void Trimmer::CutTrack(string outputFLACFile, unsigned int leftSecond, unsigned int rightSecond)
 {
@@ -84,12 +83,10 @@ void Trimmer::CutTrack(string outputFLACFile, unsigned int leftSecond, unsigned 
 			break;
 		}
 	}
-	bos.AlignByte();
-	//--------------------------------------------------
-	// int16_t crc16;
-	// bis.ReadInteger(&crc16, 16);
-	// bos.WriteInteger(crc16, 16);
-	//-------------------------------------------------- 
+//	bos.AlignByte();
+	uint16_t crc16;
+	bis.ReadInteger(&crc16, 16);
+	bos.WriteInteger(crc16, 16);
 	//Frame end
 	
 }
@@ -364,10 +361,74 @@ void Trimmer::CopyLPCSubframe(BitIStream& bis, BitOStream& bos, FLACFrameHeader 
 	bos.WriteInteger(qlpCoeffShift, 5);
 
 	unencQLPCoeffsBitSize = qlp * sfh->order;
-	if (unencQLPCoeffsBitSize != 0)CopyBits(bis, bos, unencQLPCoeffsBitSize);
+	if (unencQLPCoeffsBitSize != 0) CopyBits(bis, bos, unencQLPCoeffsBitSize);
 
+	CopyResidual(bis, bos, fh, msi);
+}
+
+void Trimmer::CopyResidual(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi)
+{
+	uint8_t codingMethod = 0;
+	bis.ReadInteger(&codingMethod, 2);
+	bos.WriteInteger(codingMethod, 2);
+
+	switch (codingMethod)
+	{
+		case RICE:
+			CopyRiceResidual(bis, bos, fh, msi);
+		break;
+		case RICE2:
+			CopyRice2Residual(bis, bos, fh, msi);
+		break;
+		default:
+			throw UnknownResudialCodingMethod();
+		break;
+	}
 
 }
+
+void Trimmer::CopyRiceResidual(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi)
+{
+	uint8_t partitionOrder = 0;
+	bis.ReadInteger(&partitionOrder, 4);
+	bos.WriteInteger(partitionOrder, 4);
+	
+	size_t partitionsCount = pow(2, partitionOrder);
+	
+	for (int partitionN = 0; partitionN < partitionOrder; partitionN++)
+	{
+		uint8_t riceParameter = 0;
+		bis.ReadInteger(&riceParameter, 4);
+		bos.WriteInteger(riceParameter, 4);
+	
+		if (riceParameter == 0b1111) 
+		{
+			//TODO: reading escape code
+		}
+
+		size_t samplesCount = 0;
+
+	}
+
+/*	uint8_t riceParameter = 0;
+	bis.ReadInteger(&riceParameter, 4);
+	bos.WriteInteger(riceParameter, 4);
+	
+	if (riceParameter == 0b1111) 
+	{
+
+	}*/
+
+}
+
+void Trimmer::CopyRice2Residual(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi)
+{
+
+}
+
+
+
+
 
 
 uint8_t Trimmer::GetBitsPerSample(FLACFrameHeader * fh, FLACMetaStreamInfo * msi)

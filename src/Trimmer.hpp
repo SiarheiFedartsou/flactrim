@@ -6,6 +6,8 @@
 #include "flac_defines.hpp"
 #include "exceptions.hpp"
 
+
+
 using namespace std;
 
 class Trimmer
@@ -40,6 +42,11 @@ class Trimmer
 		void CopyVerbatimSubframe(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi);
 		void CopyFixedSubframe(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi, FLACSubframeHeader * sfh);
 		void CopyLPCSubframe(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi, FLACSubframeHeader * sfh);
+		void CopyResidual(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi);
+		void CopyRiceResidual(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi);
+		void CopyRice2Residual(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi);
+
+
 
 
 		void CopyBytes(BitIStream& bis, BitOStream& bos, size_t n);

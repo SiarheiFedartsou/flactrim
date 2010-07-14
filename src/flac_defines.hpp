@@ -84,4 +84,10 @@ struct FLACSubframeHeader
 	uint8_t order;
 };
 
+enum FLACCResidualCodingMethod
+{
+	RICE = 0,
+	RICE2 = 1
+};
+
 #endif

@@ -40,6 +40,16 @@ public:
 	}
 };
 
+class UnknownResudialCodingMethod : public FLACError
+{
+public:
+	virtual const char* what() const throw()
+	{
+		return "Unknown resudial coding method";
+	}
+};
+
+
 
 
 #endif

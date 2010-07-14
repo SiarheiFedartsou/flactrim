@@ -38,9 +38,7 @@ au BufReadPost * :call MySetIdeSyntax()
 function! PushGit(Comment)
 	cd .. 
 	Git add .
-	exec "!git commit -m" . a:Comment
+	Git "!git commit -m """ . a:Comment . """"
 	Git push origin master
 	cd src
 endfunction
-
-" :command! PushGit -nargs=1 Comment  call PushGit(Comment)

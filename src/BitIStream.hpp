@@ -76,12 +76,7 @@ private:
 
 	template <typename T> void ReadBigEndian(T * buf, unsigned short bitCount)
 	{
-		if (std::numeric_limits<T>::digits < bitCount) 
-		{
-			std::cout << std::numeric_limits<T>::digits << std::endl;
-std::cout << std::numeric_limits<T>::digits << std::endl;
-
-		throw TypeOverflow();}
+		if (std::numeric_limits<T>::digits < bitCount) throw TypeOverflow();
 		T ret = 0;
 		while (bitCount / BITSINBYTE > 0)
 		{
