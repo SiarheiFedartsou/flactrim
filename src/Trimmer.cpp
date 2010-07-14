@@ -394,6 +394,8 @@ void Trimmer::CopyRiceResidual(BitIStream& bis, BitOStream& bos, FLACFrameHeader
 	bos.WriteInteger(partitionOrder, 4);
 	
 	size_t partitionsCount = pow(2, partitionOrder);
+
+	//cout << partitionsCount << endl;
 	
 	for (size_t partitionN = 0; partitionN < partitionsCount; partitionN++)
 	{
@@ -401,9 +403,13 @@ void Trimmer::CopyRiceResidual(BitIStream& bis, BitOStream& bos, FLACFrameHeader
 		bis.ReadInteger(&riceParameter, 4);
 		bos.WriteInteger(riceParameter, 4);
 	
+		bool isUnencoded = false;
+		uint8_t unencBitsPerSample = 0;
 		if (riceParameter == 0b1111) 
 		{
-			//TODO: reading escape code
+			isUnencoded = true;
+			bis.ReadInteger(&unencBitsPerSample, 5);
+			bos.WriteInteger(unencBitsPerSample, 5);
 		}
 
 		size_t samplesCount = 0;
@@ -419,22 +425,25 @@ void Trimmer::CopyRiceResidual(BitIStream& bis, BitOStream& bos, FLACFrameHeader
 		{
 			samplesCount = GetBlockSize(fh, msi) / pow(2, partitionOrder) - GetPredictorOrder(sfh);
 		}
+
+		size_t residualBitSize = 0;
+
+		if (isUnencoded)
+		{
+			residualBitSize = samplesCount * unencBitsPerSample;
+		}
+		else 
+		{
+			residualBitSize = samplesCount * GetBitsPerSample(fh, msi);
+		}
+		CopyBits(bis, bos, residualBitSize);
+
 	}
-
-/*	uint8_t riceParameter = 0;
-	bis.ReadInteger(&riceParameter, 4);
-	bos.WriteInteger(riceParameter, 4);
-	
-	if (riceParameter == 0b1111) 
-	{
-
-	}*/
-
 }
 
 void Trimmer::CopyRice2Residual(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi, FLACSubframeHeader * sfh)
 {
-
+	cout << "Rice 2" << endl;
 }
 
 uint8_t Trimmer::GetPredictorOrder(FLACSubframeHeader * sfh)
