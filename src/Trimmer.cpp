@@ -363,10 +363,10 @@ void Trimmer::CopyLPCSubframe(BitIStream& bis, BitOStream& bos, FLACFrameHeader 
 	unencQLPCoeffsBitSize = qlp * sfh->order;
 	if (unencQLPCoeffsBitSize != 0) CopyBits(bis, bos, unencQLPCoeffsBitSize);
 
-	CopyResidual(bis, bos, fh, msi);
+	CopyResidual(bis, bos, fh, msi, sfh);
 }
 
-void Trimmer::CopyResidual(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi)
+void Trimmer::CopyResidual(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi, FLACSubframeHeader * sfh)
 {
 	uint8_t codingMethod = 0;
 	bis.ReadInteger(&codingMethod, 2);
@@ -375,10 +375,10 @@ void Trimmer::CopyResidual(BitIStream& bis, BitOStream& bos, FLACFrameHeader * f
 	switch (codingMethod)
 	{
 		case RICE:
-			CopyRiceResidual(bis, bos, fh, msi);
+			CopyRiceResidual(bis, bos, fh, msi, sfh);
 		break;
 		case RICE2:
-			CopyRice2Residual(bis, bos, fh, msi);
+			CopyRice2Residual(bis, bos, fh, msi, sfh);
 		break;
 		default:
 			throw UnknownResudialCodingMethod();
@@ -387,7 +387,7 @@ void Trimmer::CopyResidual(BitIStream& bis, BitOStream& bos, FLACFrameHeader * f
 
 }
 
-void Trimmer::CopyRiceResidual(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi)
+void Trimmer::CopyRiceResidual(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi, FLACSubframeHeader * sfh)
 {
 	uint8_t partitionOrder = 0;
 	bis.ReadInteger(&partitionOrder, 4);
@@ -395,7 +395,7 @@ void Trimmer::CopyRiceResidual(BitIStream& bis, BitOStream& bos, FLACFrameHeader
 	
 	size_t partitionsCount = pow(2, partitionOrder);
 	
-	for (int partitionN = 0; partitionN < partitionOrder; partitionN++)
+	for (size_t partitionN = 0; partitionN < partitionsCount; partitionN++)
 	{
 		uint8_t riceParameter = 0;
 		bis.ReadInteger(&riceParameter, 4);
@@ -407,7 +407,18 @@ void Trimmer::CopyRiceResidual(BitIStream& bis, BitOStream& bos, FLACFrameHeader
 		}
 
 		size_t samplesCount = 0;
-
+		if (partitionOrder == 0)
+		{
+			samplesCount = GetBlockSize(fh, msi) - GetPredictorOrder(sfh);
+		}
+		else if (partitionN != 0) // this is not first partition of subframe ?
+		{
+			samplesCount = GetBlockSize(fh, msi) / pow(2, partitionOrder);
+		}
+		else
+		{
+			samplesCount = GetBlockSize(fh, msi) / pow(2, partitionOrder) - GetPredictorOrder(sfh);
+		}
 	}
 
 /*	uint8_t riceParameter = 0;
@@ -421,14 +432,25 @@ void Trimmer::CopyRiceResidual(BitIStream& bis, BitOStream& bos, FLACFrameHeader
 
 }
 
-void Trimmer::CopyRice2Residual(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi)
+void Trimmer::CopyRice2Residual(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi, FLACSubframeHeader * sfh)
 {
 
 }
 
+uint8_t Trimmer::GetPredictorOrder(FLACSubframeHeader * sfh)
+{
+	return sfh->order;
+}
 
+uint32_t Trimmer::GetBlockSize(FLACFrameHeader * fh, FLACMetaStreamInfo * msi)
+{
+	if (fh->BlockSize == 0b0000) return msi->MinBlockSize;
+	else if (fh->BlockSize == 0b0001) return 192;
+	else if (0b0010 <= fh->BlockSize && fh->BlockSize <= 0b0101 ) return 576 * (pow(2, fh->BlockSize - 2));
+	else if (fh->BlockSize == 0b0110 || fh->BlockSize == 0b0111) return (fh->VariableBlockSize + 1);
+	else return 256 * pow(2, fh->BlockSize - 8);
 
-
+}
 
 
 uint8_t Trimmer::GetBitsPerSample(FLACFrameHeader * fh, FLACMetaStreamInfo * msi)
@@ -452,16 +474,12 @@ uint8_t Trimmer::GetBitsPerSample(FLACFrameHeader * fh, FLACMetaStreamInfo * msi
 
 uint16_t Trimmer::GetUnencSubblockBitSize(FLACFrameHeader * fh, FLACMetaStreamInfo * msi)
 {
-	if (fh->BlockSize == 0b0000) return msi->MinBlockSize * GetBitsPerSample(fh, msi);
-	else if (fh->BlockSize == 0b0001) return 192 * GetBitsPerSample(fh, msi);
-	else if (0b0010 <= fh->BlockSize && fh->BlockSize <= 0b0101 ) return 576 * (pow(2, fh->BlockSize - 2)) *  GetBitsPerSample(fh, msi);
-	else if (fh->BlockSize == 0b0110 || fh->BlockSize == 0b0111) return (fh->VariableBlockSize + 1) * GetBitsPerSample(fh, msi);
-	else return 256 * pow(2, fh->BlockSize - 8) * GetBitsPerSample(fh, msi);
+	return GetBlockSize(fh, msi) * GetBitsPerSample(fh, msi);
 }
 
 uint16_t Trimmer::GetWarmUpSamplesBitSize(FLACFrameHeader * fh, FLACMetaStreamInfo * msi, FLACSubframeHeader * sfh)
 {
-	return GetBitsPerSample(fh, msi) * sfh->order;
+	return GetBitsPerSample(fh, msi) * GetPredictorOrder(sfh);
 }
 
 
