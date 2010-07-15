@@ -49,6 +49,3 @@ void BitIStream::ReadFlag(bool * flag)
 	ReadBigEndian(&f, 1);
 	*flag = f != 0;
 }
-
-      
-      

@@ -55,13 +55,20 @@ public:
 			count--;
 		}
 	}
-
-
-	template<typename T> void operator>>(T& op)
-	{
-       	ReadInteger(&op, sizeof(T));
-	}; 
 	
+	template<typename T> T ReadUnary(T * buf)
+	{
+		uint8_t bit = 0;
+		*buf = 1;
+		bit = ReadByte(1);
+		while (bit == 0)
+		{
+			*buf+=1;
+			bit = ReadByte(1);
+		}
+		return *buf;
+	}
+
 	void SkipBytes(size_t byteCount)
 	{
 		while (byteCount--) byteBuffer.SkipByte();
@@ -74,7 +81,7 @@ private:
 	unsigned short firstByteDigitsCount;
 	uint8_t ReadByte(unsigned short bitCount = BITSINBYTE);
 
-	template <typename T> void ReadBigEndian(T * buf, unsigned short bitCount)
+	template<typename T> void ReadBigEndian(T * buf, unsigned short bitCount)
 	{
 		if (std::numeric_limits<T>::digits < bitCount) throw TypeOverflow();
 		T ret = 0;

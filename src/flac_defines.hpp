@@ -56,6 +56,8 @@ struct FLACMetaStreamInfo
 struct FLACFrameHeader
 {
 	uint16_t SyncCode;
+	uint8_t Zero;
+	uint8_t Zero2;
 	uint8_t BlockSize;
 	uint8_t Sampling;
 	uint8_t ChannelsLocation;
@@ -79,9 +81,11 @@ enum FLACSubframeType
 
 struct FLACSubframeHeader
 {
-	FLACSubframeType type;
-	uint64_t waste;
-	uint8_t order;
+	FLACSubframeType Type;
+	uint64_t Waste;
+	uint8_t Order;
+	uint8_t Zero;
+	bool IsWasted;
 };
 
 enum FLACCResidualCodingMethod

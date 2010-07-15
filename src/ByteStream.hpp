@@ -2,6 +2,7 @@
 #define BYTESTREAM_HPP
 
 #include <iostream>
+#include <stdio.h>
 
 template<size_t size>
 class ByteIBuffer
@@ -18,9 +19,10 @@ public:
 	};
 	uint8_t GetNextByte()
 	{
+		uint8_t ret = byteBuffer[currentPos];
 		currentPos++;
 		if (IsNeedMoreBytes()) ReadMoreBytes();
-		return byteBuffer[currentPos - 1];
+		return ret;
 	};
 
 	uint8_t PeekNextByte()
@@ -30,7 +32,7 @@ public:
 
 	//This function is not working normaly, if count > size
 	//Also this function is not tested in extreme conditions :-) 
-	//But it is not very importantly, because it is only used to skip ID3 tags at begin of FLAC file(see flactrim.cpp)
+	//But it is not very importantly, because it is only used to skip ID3 tags at begin of FLAC file(see Trimmer.cpp)
 	void PeekBuffer(uint8_t * buffer, size_t count)
 	{
 		size_t currentPeekPos = currentPos;

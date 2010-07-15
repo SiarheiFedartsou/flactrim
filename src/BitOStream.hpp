@@ -20,10 +20,6 @@ public:
 	{
 		WriteBigEndian(buf, bitCount);
     }
-	template<typename T> void operator<<(T& op)
-	{
-		WriteInteger(&op, sizeof(T) * BITSINBYTE);
-	};
 
 	void WriteAlignBuffer(uint8_t * buffer, size_t count)
 	{
@@ -41,6 +37,14 @@ public:
 			i++;
 		}
 	}
+
+	template<typename T>void WriteUnary(T buf)
+	{ 
+		for (size_t i = 0; i < buf - 1; i++)
+			WriteByte(0, 1);
+		WriteByte(1, 1);
+	}
+
 
 
 	void WriteFlag(bool flag);

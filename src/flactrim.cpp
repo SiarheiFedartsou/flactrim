@@ -11,6 +11,8 @@
 #include <boost/program_options.hpp>
 #include "flac_defines.hpp"
 #include "Trimmer.hpp"
+#include "ByteStream.hpp"
+#include <stdio.h>
 
 namespace po = boost::program_options;
 using namespace std;
@@ -42,6 +44,37 @@ int main(int argc, char** argv)
 		cout << endl;
 		return 0;
 	}
+/*{
+ByteOBuffer<8> s;
+s.Init("/home/miksayer/Files/Music/10.test");
+s.WriteByte(0x61);
+s.WriteByte(0x99);
+s.WriteByte(0x67);
+s.WriteByte(0xff);
+s.WriteByte(0x01);
+s.WriteByte(0x41);
+s.WriteByte(0x31);
+s.WriteByte(0x29);
+s.WriteByte(0xfc);
+s.WriteByte(0xc9);
+s.WriteByte(0x61);
+s.WriteByte(0x99);
+s.WriteByte(0x67);
+s.WriteByte(0xff);
+s.WriteByte(0x01);
+s.WriteByte(0x41);
+s.WriteByte(0x31);
+s.WriteByte(0x29);
+s.WriteByte(0xfc);
+s.WriteByte(0xc9);
+}
+
+{
+	ByteIBuffer<8> s;
+	s.Init("/home/miksayer/Files/Music/10.test");
+		for (int i = 0; i < 12; i++)
+		 printf("%x ", s.GetNextByte());
+}*/
 
 	Trimmer trimmer("/home/miksayer/Files/Music/4.flac");
 	trimmer.CutTrack("/home/miksayer/Files/Music/10.test", 0, 0);
