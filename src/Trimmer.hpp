@@ -57,7 +57,7 @@ class Trimmer
 		uint8_t GetBitsPerSample(FLACFrameHeader * fh, FLACMetaStreamInfo * msi);
 		uint16_t GetUnencSubblockBitSize(FLACFrameHeader * fh, FLACMetaStreamInfo * msi);
 		uint16_t GetWarmUpSamplesBitSize(FLACFrameHeader * fh, FLACMetaStreamInfo * msi, FLACSubframeHeader * sfh);
-	
+	size_t c;
 		/*	BitIStream * bis;
 		BitOStream * bos;*/
 };

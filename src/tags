@@ -279,6 +279,7 @@ Trimmer::WriteStreamInfo	Trimmer.cpp	/^void Trimmer::WriteStreamInfo(BitOStream&
 Trimmer::WriteStreamInfo	Trimmer.hpp	/^		void WriteStreamInfo(BitOStream& bs, FLACMetaStreamInfo * msi);$/;"	p	class:Trimmer	access:private	signature:(BitOStream& bs, FLACMetaStreamInfo * msi)
 Trimmer::WriteSubframeHeader	Trimmer.cpp	/^void Trimmer::WriteSubframeHeader(BitOStream& bs, FLACSubframeHeader * sfh)$/;"	f	class:Trimmer	signature:(BitOStream& bs, FLACSubframeHeader * sfh)
 Trimmer::WriteSubframeHeader	Trimmer.hpp	/^		void WriteSubframeHeader(BitOStream& bs, FLACSubframeHeader * sfh);$/;"	p	class:Trimmer	access:private	signature:(BitOStream& bs, FLACSubframeHeader * sfh)
+Trimmer::c	Trimmer.hpp	/^	size_t c;$/;"	m	class:Trimmer	access:private
 Trimmer::fileName	Trimmer.hpp	/^		string fileName;$/;"	m	class:Trimmer	access:private
 Trimmer::~Trimmer	Trimmer.hpp	/^		~Trimmer()$/;"	f	class:Trimmer	access:public	signature:()
 Type	flac_defines.hpp	/^	FLACSubframeType Type;$/;"	m	struct:FLACSubframeHeader	access:public
@@ -320,6 +321,7 @@ byteBuffer	BitIStream.hpp	/^	ByteIBuffer<IOBUFFERSIZE> byteBuffer;$/;"	m	class:B
 byteBuffer	BitOStream.hpp	/^	ByteOBuffer<IOBUFFERSIZE> byteBuffer;$/;"	m	class:BitOStream	access:private
 byteBuffer	ByteStream.hpp	/^	uint8_t byteBuffer[size];$/;"	m	class:ByteIBuffer	access:private
 byteBuffer	ByteStream.hpp	/^	uint8_t byteBuffer[size];$/;"	m	class:ByteOBuffer	access:private
+c	Trimmer.hpp	/^	size_t c;$/;"	m	class:Trimmer	access:private
 currentBufferSize	ByteStream.hpp	/^    size_t currentBufferSize;$/;"	m	class:ByteIBuffer	access:private
 currentByte	ByteStream.hpp	/^	uint8_t currentByte;$/;"	m	class:ByteOBuffer	access:private
 currentPos	ByteStream.hpp	/^	size_t currentPos;$/;"	m	class:ByteOBuffer	access:private
