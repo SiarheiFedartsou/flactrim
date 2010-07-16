@@ -439,6 +439,7 @@ void Trimmer::CopyRiceResidual(BitIStream& bis, BitOStream& bos, FLACFrameHeader
 		{
 			residualBitSize = samplesCount * GetBitsPerSample(fh, msi);
 		}
+		cout << residualBitSize << endl;
 		CopyBits(bis, bos, residualBitSize);
 
 	}
