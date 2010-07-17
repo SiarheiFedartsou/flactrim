@@ -34,9 +34,11 @@ class Trimmer
 		void ReadFrameHeader(BitIStream& bs, FLACFrameHeader * fh);
 		void WriteFrameHeader(BitOStream& bs, FLACFrameHeader * fh);
 
-
 		void ReadSubframeHeader(BitIStream& bs, FLACSubframeHeader * sfh);
 		void WriteSubframeHeader(BitOStream& bs, FLACSubframeHeader * sfh);
+
+		void ReadUTF8Num(BitIStream& bs, FLACUtf8Num * num);
+		void WriteUTF8Num(BitOStream& bs, FLACUtf8Num * num);
 
 		void CopyConstantSubframe(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi);
 		void CopyVerbatimSubframe(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi);

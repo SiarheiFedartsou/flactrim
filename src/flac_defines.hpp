@@ -53,6 +53,13 @@ struct FLACMetaStreamInfo
 	uint8_t md5[16];
 };
 
+struct FLACUtf8Num
+{
+	uint8_t Num[10];
+	uint8_t Length;
+	uint32_t Value;
+};
+
 struct FLACFrameHeader
 {
 	uint16_t SyncCode;
@@ -67,7 +74,7 @@ struct FLACFrameHeader
 	uint16_t VariableSampling;
 	bool IsVariableBlockSize;
 	bool IsVariableSampling;
-	uint64_t UTF8Num;
+	FLACUtf8Num UTF8Num;
 };
 
 enum FLACSubframeType
