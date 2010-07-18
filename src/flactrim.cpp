@@ -76,7 +76,7 @@ s.WriteByte(0xc9);
 		 printf("%x ", s.GetNextByte());
 }*/
 
-	Trimmer trimmer("/home/miksayer/Files/Music/4.flac");
+	Trimmer trimmer("/home/miksayer/Files/Music/1.flac");
 	trimmer.CutTrack("/home/miksayer/Files/Music/10.test", 0, 0);
 
 	return (EXIT_SUCCESS);

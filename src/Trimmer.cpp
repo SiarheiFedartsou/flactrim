@@ -53,13 +53,18 @@ void Trimmer::CutTrack(string outputFLACFile, unsigned int leftSecond, unsigned 
 			break;
 		}
 	}
-	for (int i = 0; i < 3; i++)
+	for (int i = 0; i < 10; i++)
 	{
 
 		//Frame start
 		FLACFrameHeader fh;
 		ReadFrameHeader(bis, &fh);
 		WriteFrameHeader(bos, &fh);
+		if (fh.SyncCode != 0b11111111111110) 
+		{
+			cout << "Invalid sync code" << endl;
+			throw NoFLACFile();
+		}
 		for (int subframeN = 0; subframeN <= msi.ChannelsCount; subframeN++)
 		{
 			FLACSubframeHeader sfh;
@@ -152,28 +157,6 @@ void Trimmer::ReadFrameHeader(BitIStream& bs, FLACFrameHeader * fh)
 	bs.ReadInteger(&fh->BitsPerSample, 3);
 	bs.ReadInteger(&fh->Zero2, 1);
 
-	//TODO: VERY IMPORTANT!!! invalid utf8 number reading
-/*	bs.ReadInteger(&fh->Zero2, 8);
-	cout << (int)fh->Zero2 << endl;
-	switch (fh->BlockSize)
-	{
-		case 0b0110:
-			bs.ReadInteger(&fh->UTF8Num, 36);
-			bs.ReadInteger(&fh->VariableBlockSize, 8);
-			fh->IsVariableBlockSize = true;
-		break;
-
-		case 0b0111:
-			bs.ReadInteger(&fh->UTF8Num, 36);
-			bs.ReadInteger(&fh->VariableBlockSize, 16);
-			fh->IsVariableBlockSize = true;
-		break;
-
-		default:
-			bs.ReadInteger(&fh->UTF8Num, 31);
-			fh->IsVariableBlockSize = false;
-		break;
-	}*/
 	ReadUTF8Num(bs, &fh->UTF8Num);
 
 	switch (fh->Sampling)
@@ -206,22 +189,6 @@ void Trimmer::WriteFrameHeader(BitOStream& bs, FLACFrameHeader * fh)
 	bs.WriteInteger(fh->BitsPerSample, 3);
 	bs.WriteInteger(fh->Zero2, 1);
 
-	/*switch (fh->BlockSize)
-	{
-		case 0b0110:
-			bs.WriteInteger(fh->UTF8Num, 36);
-			bs.WriteInteger(fh->VariableBlockSize, 8);
-		break;
-
-		case 0b0111:
-			bs.WriteInteger(fh->UTF8Num, 36);
-			bs.WriteInteger(fh->VariableBlockSize, 16);
-		break;
-
-		default:
-			bs.WriteInteger(fh->UTF8Num, 31);
-		break;
-	}*/
 	WriteUTF8Num(bs, &fh->UTF8Num);
 
 	switch (fh->Sampling)
@@ -245,7 +212,7 @@ void Trimmer::ReadSubframeHeader(BitIStream& bs, FLACSubframeHeader * sfh)
 	uint8_t sf_type = 0;
 
 	bs.ReadInteger(&sfh->Zero, 1);
-	cout << (int)sfh->Zero << endl;
+
 	bs.ReadInteger(&sf_type, 6);
 	if (sf_type == 0) { //constant
 		sfh->Type = FLAC_SF_CONSTANT;
@@ -310,82 +277,37 @@ void Trimmer::ReadUTF8Num(BitIStream& bs, FLACUtf8Num * num)
 	num->Num[num->Length++] = x;
 
 	if (!(x & 0x80)) { // 0xxxxxxx 
-		v = x;
 		i = 0;
 	}
 	else if(x & 0xC0 && !(x & 0x20)) { // 110xxxxx
-		v = x & 0x1F;
 		i = 1;
 	}
 	else if(x & 0xE0 && !(x & 0x10)) { // 1110xxxx
-		v = x & 0x0F;
 		i = 2;
 	}
 	else if(x & 0xF0 && !(x & 0x08)) { // 11110xxx
-		v = x & 0x07;
 		i = 3;
 	}
 	else if(x & 0xF8 && !(x & 0x04)) { // 111110xx
-		v = x & 0x03;
 		i = 4;
 	}
 	else if(x & 0xFC && !(x & 0x02)) { // 1111110x
-		v = x & 0x01;
 		i = 5;
-	}
-	else {
-		cerr << "Error" << endl;
 	}
 
 	for ( ; i; i--)
 	{
 		bs.ReadInteger(&x, 8);
 		num->Num[num->Length++] = x;
-		if(!(x & 0x80) || (x & 0x40)) { /* 10xxxxxx */
-			cerr << "Error" << endl;
-		}
-		v <<= 6;
-		v |= (x & 0x3F);
 	}
-	num->Value = v;
 }
 
 void Trimmer::WriteUTF8Num(BitOStream& bs, FLACUtf8Num * num)
 {
-	if(num->Value < 0x80) {
-		bs.WriteInteger(num->Value, 8);
+	for (int i = 0; i < num->Length; i++)
+	{
+		bs.WriteInteger(num->Num[i], 8);
 	}
-	else if(num->Value < 0x800) {
-		bs.WriteInteger(0xC0 | (num->Value >> 6), 8);
-		bs.WriteInteger(0x80 | (num->Value & 0x3F), 8);
-	}
-	else if(num->Value < 0x10000) {
-		bs.WriteInteger(0xE0 | (num->Value >> 12), 8);
-		bs.WriteInteger(0x80 | ((num->Value >> 6) & 0x3F), 8);
-		bs.WriteInteger(0x80 | (num->Value & 0x3F), 8);
-	}
-	else if(num->Value < 0x200000) {
-		bs.WriteInteger(0xF0 | (num->Value >> 18), 8);
-		bs.WriteInteger(0x80 | ((num->Value >> 12) & 0x3F), 8);
-		bs.WriteInteger(0x80 | ((num->Value >> 6) & 0x3F), 8);
-		bs.WriteInteger(0x80 | (num->Value & 0x3F), 8);
-	}
-	else if(num->Value < 0x4000000) {
-		bs.WriteInteger(0xF8 | (num->Value >> 24), 8);
-		bs.WriteInteger(0x80 | ((num->Value >> 18) & 0x3F), 8);
-		bs.WriteInteger(0x80 | ((num->Value >> 12) & 0x3F), 8);
-		bs.WriteInteger(0x80 | ((num->Value >> 6) & 0x3F), 8);
-		bs.WriteInteger(0x80 | (num->Value & 0x3F), 8);
-	}
-	else {
-		bs.WriteInteger(0xFC | (num->Value >> 30), 8);
-		bs.WriteInteger(0x80 | ((num->Value >> 24) & 0x3F), 8);
-		bs.WriteInteger(0x80 | ((num->Value >> 18) & 0x3F), 8);
-		bs.WriteInteger(0x80 | ((num->Value >> 12) & 0x3F), 8);
-		bs.WriteInteger(0x80 | ((num->Value >> 6) & 0x3F), 8);
-		bs.WriteInteger(0x80 | (num->Value & 0x3F), 8);
-	}
-
 }
 
 
@@ -440,7 +362,6 @@ void Trimmer::CopyFixedSubframe(BitIStream& bis, BitOStream& bos, FLACFrameHeade
 	//-------------------------------------------------- 
 	size_t bitSize = GetWarmUpSamplesBitSize(fh, msi, sfh);
 	CopyBits(bis, bos, bitSize);
-	cout << bitSize << endl;
 	/*if (bitSize % BITSINBYTE != 0) CopyBits(bis, bos, bitSize);
 	else CopyBytes(bis, bos, bitSize / BITSINBYTE);*/
 	
@@ -500,6 +421,7 @@ void Trimmer::CopyRiceResidual(BitIStream& bis, BitOStream& bos, FLACFrameHeader
 		uint8_t riceParameter = 0;
 		bis.ReadInteger(&riceParameter, 4);
 		bos.WriteInteger(riceParameter, 4);
+
 	
 		bool isUnencoded = false;
 		uint8_t unencBitsPerSample = 0;
@@ -528,15 +450,90 @@ void Trimmer::CopyRiceResidual(BitIStream& bis, BitOStream& bos, FLACFrameHeader
 
 		if (isUnencoded)
 		{
+			
 			residualBitSize = samplesCount * unencBitsPerSample;
 		}
 		else 
 		{
 			residualBitSize = samplesCount * GetBitsPerSample(fh, msi);
 		}
-		CopyBits(bis, bos, residualBitSize);
 
+		for (size_t i = 0; i < samplesCount; i++)
+		{
+			uint32_t unary = 0;
+			bis.ReadUnary(&unary);
+			bos.WriteUnary(unary);
+
+			uint32_t resudial = 0;
+			if (riceParameter != 0)
+			{
+				bis.ReadInteger(&resudial, riceParameter);
+				bos.WriteInteger(resudial, riceParameter);
+			}
+
+		}
+	//	CopyBits(bis, bos, residualBitSize);	
 	}
+	//--------------------------------------------------
+	// 	
+	// 	/*for (size_t i = 0; i < samplesCount; i++)
+	// 	{
+	// 		//reading
+	// 		int val = 0;
+	// 		uint32_t sign = 0;
+	// 		uint32_t lsbs = 0;
+	// 		uint32_t msbs = 0;
+	// 		uint8_t bit = 0;
+	//-------------------------------------------------- 
+
+	//--------------------------------------------------
+	// 		bis.ReadInteger(&sign, 1);
+	// 		bis.ReadInteger(&lsbs, riceParameter);
+	// 		while(1) 
+	// 		{
+	// 			bis.ReadInteger(&bit, 1);
+	// 			if(bit) break;
+	// 			else msbs++;
+	// 		}
+	//-------------------------------------------------- 
+
+	//--------------------------------------------------
+	// 		val = (msbs << riceParameter) | lsbs;
+	// 		if (sign) val = -val;
+	// 	
+	// 		//writing
+	// 		uint32_t pattern = 0;
+	// 		unsigned bits = 0;
+	// 		if(val < 0) {
+	// 			pattern = 1;
+	// 			val = -val;
+	// 		}	
+	// 		else pattern = 0;
+	//-------------------------------------------------- 
+
+	//--------------------------------------------------
+	// 		msbs = val >> riceParameter;
+	// 		bits = 2 + riceParameter + msbs;
+	//-------------------------------------------------- 
+
+	//--------------------------------------------------
+	// 		if(bits <= 32) {
+	// 			pattern = (pattern << riceParameter) | (val & ((1<<riceParameter)-1));
+	// 			pattern = (pattern << (msbs+1)) | 1;
+	// 			bos.WriteInteger(pattern, bits);
+	// 		}
+	// 		else {
+	// 			bos.WriteInteger(pattern, 1);
+	// 			bos.WriteInteger(val & ((1<<riceParameter)-1), riceParameter);
+	// 			bos.WriteInteger(0, msbs);
+	// 			bos.WriteInteger(1, 1);
+	// 		}
+	// 	}*/
+	//-------------------------------------------------- 
+
+	//--------------------------------------------------
+	// }
+	//-------------------------------------------------- 
 }
 
 void Trimmer::CopyRice2Residual(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi, FLACSubframeHeader * sfh)

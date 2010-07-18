@@ -157,6 +157,7 @@ FLACSubframeType	flac_defines.hpp	/^enum FLACSubframeType$/;"	g
 FLACUtf8Num	flac_defines.hpp	/^struct FLACUtf8Num$/;"	s
 FLACUtf8Num::Length	flac_defines.hpp	/^	uint8_t Length;$/;"	m	struct:FLACUtf8Num	access:public
 FLACUtf8Num::Num	flac_defines.hpp	/^	uint8_t Num[10];$/;"	m	struct:FLACUtf8Num	access:public
+FLACUtf8Num::Value	flac_defines.hpp	/^	uint32_t Value;$/;"	m	struct:FLACUtf8Num	access:public
 FLAC_DEFINES_HPP	flac_defines.hpp	2;"	d
 FLAC_META_APPLICATION	flac_defines.hpp	/^	FLAC_META_APPLICATION = 2,$/;"	e	enum:FLACMetaBlockType
 FLAC_META_CUESHEET	flac_defines.hpp	/^	FLAC_META_CUESHEET = 5,$/;"	e	enum:FLACMetaBlockType
@@ -225,7 +226,7 @@ ReadString	BitIStream.cpp	/^std::string BitIStream::ReadString(unsigned int byte
 ReadString	BitIStream.hpp	/^	std::string ReadString(unsigned int byteCount);$/;"	p	class:BitIStream	access:public	signature:(unsigned int byteCount)
 ReadSubframeHeader	Trimmer.cpp	/^void Trimmer::ReadSubframeHeader(BitIStream& bs, FLACSubframeHeader * sfh)$/;"	f	class:Trimmer	signature:(BitIStream& bs, FLACSubframeHeader * sfh)
 ReadSubframeHeader	Trimmer.hpp	/^		void ReadSubframeHeader(BitIStream& bs, FLACSubframeHeader * sfh);$/;"	p	class:Trimmer	access:private	signature:(BitIStream& bs, FLACSubframeHeader * sfh)
-ReadUTF8Num	Trimmer.cpp	/^void Trimmer::ReadUTF8Num(BitIStream& bs, FLACUtf8Num * num)$/;"	f	class:Trimmer	signature:(BitIStream& bs, FLACUtf8Num * num)
+ReadUTF8Num	Trimmer.cpp	/^ivoid Trimmer::ReadUTF8Num(BitIStream& bs, FLACUtf8Num * num)$/;"	f	class:Trimmer	signature:(BitIStream& bs, FLACUtf8Num * num)
 ReadUTF8Num	Trimmer.hpp	/^		void ReadUTF8Num(BitIStream& bs, FLACUtf8Num * num);$/;"	p	class:Trimmer	access:private	signature:(BitIStream& bs, FLACUtf8Num * num)
 ReadUnary	BitIStream.hpp	/^	template<typename T> T ReadUnary(T * buf)$/;"	f	class:BitIStream	access:public	signature:(T * buf)
 Sampling	flac_defines.hpp	/^	uint32_t Sampling;$/;"	m	struct:FLACMetaStreamInfo	access:public
@@ -277,7 +278,7 @@ Trimmer::ReadStreamInfo	Trimmer.cpp	/^void Trimmer::ReadStreamInfo(BitIStream& b
 Trimmer::ReadStreamInfo	Trimmer.hpp	/^		void ReadStreamInfo(BitIStream& bs, FLACMetaStreamInfo * msi);$/;"	p	class:Trimmer	access:private	signature:(BitIStream& bs, FLACMetaStreamInfo * msi)
 Trimmer::ReadSubframeHeader	Trimmer.cpp	/^void Trimmer::ReadSubframeHeader(BitIStream& bs, FLACSubframeHeader * sfh)$/;"	f	class:Trimmer	signature:(BitIStream& bs, FLACSubframeHeader * sfh)
 Trimmer::ReadSubframeHeader	Trimmer.hpp	/^		void ReadSubframeHeader(BitIStream& bs, FLACSubframeHeader * sfh);$/;"	p	class:Trimmer	access:private	signature:(BitIStream& bs, FLACSubframeHeader * sfh)
-Trimmer::ReadUTF8Num	Trimmer.cpp	/^void Trimmer::ReadUTF8Num(BitIStream& bs, FLACUtf8Num * num)$/;"	f	class:Trimmer	signature:(BitIStream& bs, FLACUtf8Num * num)
+Trimmer::ReadUTF8Num	Trimmer.cpp	/^ivoid Trimmer::ReadUTF8Num(BitIStream& bs, FLACUtf8Num * num)$/;"	f	class:Trimmer	signature:(BitIStream& bs, FLACUtf8Num * num)
 Trimmer::ReadUTF8Num	Trimmer.hpp	/^		void ReadUTF8Num(BitIStream& bs, FLACUtf8Num * num);$/;"	p	class:Trimmer	access:private	signature:(BitIStream& bs, FLACUtf8Num * num)
 Trimmer::Trimmer	Trimmer.hpp	/^		Trimmer(std::string FLACFileName) : fileName(FLACFileName)$/;"	f	class:Trimmer	access:public	signature:(std::string FLACFileName)
 Trimmer::WriteFrameHeader	Trimmer.cpp	/^void Trimmer::WriteFrameHeader(BitOStream& bs, FLACFrameHeader * fh)$/;"	f	class:Trimmer	signature:(BitOStream& bs, FLACFrameHeader * fh)
@@ -288,8 +289,8 @@ Trimmer::WriteStreamInfo	Trimmer.cpp	/^void Trimmer::WriteStreamInfo(BitOStream&
 Trimmer::WriteStreamInfo	Trimmer.hpp	/^		void WriteStreamInfo(BitOStream& bs, FLACMetaStreamInfo * msi);$/;"	p	class:Trimmer	access:private	signature:(BitOStream& bs, FLACMetaStreamInfo * msi)
 Trimmer::WriteSubframeHeader	Trimmer.cpp	/^void Trimmer::WriteSubframeHeader(BitOStream& bs, FLACSubframeHeader * sfh)$/;"	f	class:Trimmer	signature:(BitOStream& bs, FLACSubframeHeader * sfh)
 Trimmer::WriteSubframeHeader	Trimmer.hpp	/^		void WriteSubframeHeader(BitOStream& bs, FLACSubframeHeader * sfh);$/;"	p	class:Trimmer	access:private	signature:(BitOStream& bs, FLACSubframeHeader * sfh)
-Trimmer::WriteUTF8Num	Trimmer.cpp	/^void Trimmer::WriteUTF8Num(BitIStream& bs, FLACUtf8Num * num)$/;"	f	class:Trimmer	signature:(BitIStream& bs, FLACUtf8Num * num)
-Trimmer::WriteUTF8Num	Trimmer.hpp	/^		void WriteUTF8Num(BitIStream& bs, FLACUtf8Num * num);$/;"	p	class:Trimmer	access:private	signature:(BitIStream& bs, FLACUtf8Num * num)
+Trimmer::WriteUTF8Num	Trimmer.cpp	/^void Trimmer::WriteUTF8Num(BitOStream& bs, FLACUtf8Num * num)$/;"	f	class:Trimmer	signature:(BitOStream& bs, FLACUtf8Num * num)
+Trimmer::WriteUTF8Num	Trimmer.hpp	/^		void WriteUTF8Num(BitOStream& bs, FLACUtf8Num * num);$/;"	p	class:Trimmer	access:private	signature:(BitOStream& bs, FLACUtf8Num * num)
 Trimmer::c	Trimmer.hpp	/^	size_t c;$/;"	m	class:Trimmer	access:private
 Trimmer::fileName	Trimmer.hpp	/^		string fileName;$/;"	m	class:Trimmer	access:private
 Trimmer::~Trimmer	Trimmer.hpp	/^		~Trimmer()$/;"	f	class:Trimmer	access:public	signature:()
@@ -301,6 +302,7 @@ UnexpectedEOF	exceptions.hpp	/^class UnexpectedEOF : public std::exception $/;"	
 UnexpectedEOF::what	exceptions.hpp	/^	virtual const char* what() const throw()$/;"	f	class:UnexpectedEOF	access:public	signature:() const
 UnknownResudialCodingMethod	exceptions.hpp	/^class UnknownResudialCodingMethod : public FLACError$/;"	c	inherits:FLACError
 UnknownResudialCodingMethod::what	exceptions.hpp	/^	virtual const char* what() const throw()$/;"	f	class:UnknownResudialCodingMethod	access:public	signature:() const
+Value	flac_defines.hpp	/^	uint32_t Value;$/;"	m	struct:FLACUtf8Num	access:public
 VariableBlockSize	flac_defines.hpp	/^	uint16_t VariableBlockSize;$/;"	m	struct:FLACFrameHeader	access:public
 VariableSampling	flac_defines.hpp	/^	uint16_t VariableSampling;$/;"	m	struct:FLACFrameHeader	access:public
 Waste	flac_defines.hpp	/^	uint64_t Waste;$/;"	m	struct:FLACSubframeHeader	access:public
@@ -324,8 +326,8 @@ WriteString	BitOStream.cpp	/^void BitOStream::WriteString(std::string str)$/;"	f
 WriteString	BitOStream.hpp	/^	void WriteString(std::string str);$/;"	p	class:BitOStream	access:public	signature:(std::string str)
 WriteSubframeHeader	Trimmer.cpp	/^void Trimmer::WriteSubframeHeader(BitOStream& bs, FLACSubframeHeader * sfh)$/;"	f	class:Trimmer	signature:(BitOStream& bs, FLACSubframeHeader * sfh)
 WriteSubframeHeader	Trimmer.hpp	/^		void WriteSubframeHeader(BitOStream& bs, FLACSubframeHeader * sfh);$/;"	p	class:Trimmer	access:private	signature:(BitOStream& bs, FLACSubframeHeader * sfh)
-WriteUTF8Num	Trimmer.cpp	/^void Trimmer::WriteUTF8Num(BitIStream& bs, FLACUtf8Num * num)$/;"	f	class:Trimmer	signature:(BitIStream& bs, FLACUtf8Num * num)
-WriteUTF8Num	Trimmer.hpp	/^		void WriteUTF8Num(BitIStream& bs, FLACUtf8Num * num);$/;"	p	class:Trimmer	access:private	signature:(BitIStream& bs, FLACUtf8Num * num)
+WriteUTF8Num	Trimmer.cpp	/^void Trimmer::WriteUTF8Num(BitOStream& bs, FLACUtf8Num * num)$/;"	f	class:Trimmer	signature:(BitOStream& bs, FLACUtf8Num * num)
+WriteUTF8Num	Trimmer.hpp	/^		void WriteUTF8Num(BitOStream& bs, FLACUtf8Num * num);$/;"	p	class:Trimmer	access:private	signature:(BitOStream& bs, FLACUtf8Num * num)
 WriteUnary	BitOStream.hpp	/^	template<typename T>void WriteUnary(T buf)$/;"	f	class:BitOStream	access:public	signature:(T buf)
 Zero	flac_defines.hpp	/^	uint8_t Zero;$/;"	m	struct:FLACFrameHeader	access:public
 Zero	flac_defines.hpp	/^	uint8_t Zero;$/;"	m	struct:FLACSubframeHeader	access:public
