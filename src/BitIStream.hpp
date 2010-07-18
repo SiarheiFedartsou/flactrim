@@ -59,7 +59,7 @@ public:
 	template<typename T> T ReadUnary(T * buf)
 	{
 		uint8_t bit = 0;
-		*buf = 1;
+		*buf = 0;
 		bit = ReadByte(1);
 		while (bit == 0)
 		{

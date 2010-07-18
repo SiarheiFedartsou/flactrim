@@ -268,7 +268,6 @@ void Trimmer::WriteSubframeHeader(BitOStream& bs, FLACSubframeHeader * sfh)
 
 void Trimmer::ReadUTF8Num(BitIStream& bs, FLACUtf8Num * num)
 {
-	uint32_t v = 0;
 	uint8_t x = 0;
 	size_t i = 0;
 	num->Length = 0;
@@ -382,6 +381,7 @@ void Trimmer::CopyLPCSubframe(BitIStream& bis, BitOStream& bos, FLACFrameHeader 
 	bos.WriteInteger(qlpCoeffShift, 5);
 
 	unencQLPCoeffsBitSize = (qlp + 1) * GetPredictorOrder(sfh);
+
 	if (unencQLPCoeffsBitSize != 0) CopyBits(bis, bos, unencQLPCoeffsBitSize);
 
 	CopyResidual(bis, bos, fh, msi, sfh);
@@ -422,7 +422,7 @@ void Trimmer::CopyRiceResidual(BitIStream& bis, BitOStream& bos, FLACFrameHeader
 		bis.ReadInteger(&riceParameter, 4);
 		bos.WriteInteger(riceParameter, 4);
 
-	
+		
 		bool isUnencoded = false;
 		uint8_t unencBitsPerSample = 0;
 		if (riceParameter == 0b1111) 
@@ -431,7 +431,7 @@ void Trimmer::CopyRiceResidual(BitIStream& bis, BitOStream& bos, FLACFrameHeader
 			bis.ReadInteger(&unencBitsPerSample, 5);
 			bos.WriteInteger(unencBitsPerSample, 5);
 		}
-
+		
 		size_t samplesCount = 0;
 		if (partitionOrder == 0)
 		{
@@ -445,21 +445,27 @@ void Trimmer::CopyRiceResidual(BitIStream& bis, BitOStream& bos, FLACFrameHeader
 		{
 			samplesCount = GetBlockSize(fh, msi) / pow(2, partitionOrder) - GetPredictorOrder(sfh);
 		}
-
+		
 		size_t residualBitSize = 0;
 
 		if (isUnencoded)
 		{
-			
 			residualBitSize = samplesCount * unencBitsPerSample;
 		}
 		else 
 		{
 			residualBitSize = samplesCount * GetBitsPerSample(fh, msi);
 		}
+	/*	uint32_t unary = 0;
+		bis.ReadUnary(&unary);
+		bos.WriteUnary(unary);
+		cout << unary << endl;*/
 
 		for (size_t i = 0; i < samplesCount; i++)
 		{
+			uint8_t sign = 0;
+			bis.ReadInteger(&sign, 1);
+			bos.WriteInteger(sign, 1);
 			uint32_t unary = 0;
 			bis.ReadUnary(&unary);
 			bos.WriteUnary(unary);
@@ -474,66 +480,7 @@ void Trimmer::CopyRiceResidual(BitIStream& bis, BitOStream& bos, FLACFrameHeader
 		}
 	//	CopyBits(bis, bos, residualBitSize);	
 	}
-	//--------------------------------------------------
-	// 	
-	// 	/*for (size_t i = 0; i < samplesCount; i++)
-	// 	{
-	// 		//reading
-	// 		int val = 0;
-	// 		uint32_t sign = 0;
-	// 		uint32_t lsbs = 0;
-	// 		uint32_t msbs = 0;
-	// 		uint8_t bit = 0;
-	//-------------------------------------------------- 
 
-	//--------------------------------------------------
-	// 		bis.ReadInteger(&sign, 1);
-	// 		bis.ReadInteger(&lsbs, riceParameter);
-	// 		while(1) 
-	// 		{
-	// 			bis.ReadInteger(&bit, 1);
-	// 			if(bit) break;
-	// 			else msbs++;
-	// 		}
-	//-------------------------------------------------- 
-
-	//--------------------------------------------------
-	// 		val = (msbs << riceParameter) | lsbs;
-	// 		if (sign) val = -val;
-	// 	
-	// 		//writing
-	// 		uint32_t pattern = 0;
-	// 		unsigned bits = 0;
-	// 		if(val < 0) {
-	// 			pattern = 1;
-	// 			val = -val;
-	// 		}	
-	// 		else pattern = 0;
-	//-------------------------------------------------- 
-
-	//--------------------------------------------------
-	// 		msbs = val >> riceParameter;
-	// 		bits = 2 + riceParameter + msbs;
-	//-------------------------------------------------- 
-
-	//--------------------------------------------------
-	// 		if(bits <= 32) {
-	// 			pattern = (pattern << riceParameter) | (val & ((1<<riceParameter)-1));
-	// 			pattern = (pattern << (msbs+1)) | 1;
-	// 			bos.WriteInteger(pattern, bits);
-	// 		}
-	// 		else {
-	// 			bos.WriteInteger(pattern, 1);
-	// 			bos.WriteInteger(val & ((1<<riceParameter)-1), riceParameter);
-	// 			bos.WriteInteger(0, msbs);
-	// 			bos.WriteInteger(1, 1);
-	// 		}
-	// 	}*/
-	//-------------------------------------------------- 
-
-	//--------------------------------------------------
-	// }
-	//-------------------------------------------------- 
 }
 
 void Trimmer::CopyRice2Residual(BitIStream& bis, BitOStream& bos, FLACFrameHeader * fh, FLACMetaStreamInfo * msi, FLACSubframeHeader * sfh)

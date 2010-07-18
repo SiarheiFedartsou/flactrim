@@ -40,7 +40,7 @@ public:
 
 	template<typename T>void WriteUnary(T buf)
 	{ 
-		for (size_t i = 0; i < buf - 1; i++)
+		for (size_t i = 0; i < buf; i++)
 			WriteByte(0, 1);
 		WriteByte(1, 1);
 	}
